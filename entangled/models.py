@@ -1,5 +1,6 @@
 import jsonfield
-from django.forms.models import ModelFormMetaclass
+from django.contrib.contenttypes.models import ContentType, ContentTypeManager
+from django.forms.models import ModelChoiceField, ModelFormMetaclass
 from django.forms.fields import Field
 from django.forms.widgets import Widget
 
@@ -48,15 +49,38 @@ class EntangledFormMetaclass(ModelFormMetaclass):
 
 class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
     def __init__(self, instance=None, initial=None, *args, **kwargs):
+        opts = self._meta
         if instance:
             initial = {} if initial is None else initial
-            for field_name in self._meta.entangled_fields:
-                initial.update(getattr(instance, field_name))
+            for field_name, assigned_fields in opts.entangled_fields.items():
+                for af in assigned_fields:
+                    if isinstance(self.base_fields[af], ModelChoiceField):
+                        reference = getattr(instance, field_name)[af]
+                        app_label, model_name = reference['model'].split('.')
+                        content_type = ContentType.objects.get(app_label=app_label, model=model_name)
+                        try:
+                            initial[af] = content_type.get_object_for_this_type(pk=reference['pk'])
+                        except ContentType.DoesNotExist:
+                            pass
+                    else:
+                        initial[af] = getattr(instance, field_name)[af]
         super().__init__(instance=instance, initial=initial, *args, **kwargs)
 
     def clean(self):
+        opts = self._meta
         cleaned_data = super().clean()
         result = {}
-        for field_name, assigned_fields in self._meta.entangled_fields.items():
-            result[field_name] = {af: cleaned_data[af] for af in assigned_fields if af in cleaned_data}
+        for field_name, assigned_fields in opts.entangled_fields.items():
+            result[field_name] = {}
+            for af in assigned_fields:
+                if af not in cleaned_data:
+                    continue
+                if isinstance(self.base_fields[af], ModelChoiceField):
+                    content_type = ContentType.objects.get_for_model(cleaned_data[af])
+                    result[field_name][af] = {
+                        'model': '{}.{}'.format(content_type.app_label, content_type.model),
+                        'pk': cleaned_data[af].pk,
+                    }
+                else:
+                    result[field_name][af] = cleaned_data[af]
         return result
