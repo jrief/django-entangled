@@ -61,8 +61,6 @@ class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
                 for af in assigned_fields:
                     if af in reference:
                         if isinstance(self.base_fields[af], ModelChoiceField):
-                            #app_label, model_name = reference[af]['model'].split('.')
-                            #content_type = ContentType.objects.get(app_label=app_label, model=model_name)
                             try:
                                 Model = apps.get_model(reference[af]['model'])
                                 initial[af] = Model.objects.get(pk=reference[af]['pk'])

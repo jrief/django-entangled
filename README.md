@@ -2,6 +2,12 @@
 
 Edit JSON-Model Fields using a Standard Django Form.
 
+[![Build Status](https://travis-ci.org/jrief/django-entangled.svg?branch=master)](https://travis-ci.org/jrief/django-entangled)
+[![PyPI](https://img.shields.io/pypi/pyversions/django-entangled.svg)]()
+[![PyPI version](https://img.shields.io/pypi/v/django-entangled.svg)](https://https://pypi.python.org/pypi/django-entangled)
+[![PyPI](https://img.shields.io/pypi/l/django-entangled.svg)]()
+[![Twitter Follow](https://img.shields.io/twitter/follow/shields_io.svg?style=social&label=Follow&maxAge=2592000)](https://twitter.com/jacobrief)
+
 
 ## Use-Case
 
