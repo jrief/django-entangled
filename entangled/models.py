@@ -52,23 +52,26 @@ class EntangledFormMetaclass(ModelFormMetaclass):
 
 
 class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
-    def __init__(self, instance=None, initial=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         opts = self._meta
-        if instance:
-            initial = {} if initial is None else initial
+        if 'instance' in kwargs:
+            initial = kwargs['initial'] if 'initial' in kwargs else {}
             for field_name, assigned_fields in opts.entangled_fields.items():
+                reference = getattr(kwargs['instance'], field_name)
                 for af in assigned_fields:
-                    if isinstance(self.base_fields[af], ModelChoiceField):
-                        reference = getattr(instance, field_name)[af]
-                        app_label, model_name = reference['model'].split('.')
-                        content_type = ContentType.objects.get(app_label=app_label, model=model_name)
-                        try:
-                            initial[af] = content_type.get_object_for_this_type(pk=reference['pk'])
-                        except ContentType.DoesNotExist:
-                            pass
-                    else:
-                        initial[af] = getattr(instance, field_name)[af]
-        super().__init__(instance=instance, initial=initial, *args, **kwargs)
+                    if af in reference:
+                        if isinstance(self.base_fields[af], ModelChoiceField):
+                            #app_label, model_name = reference[af]['model'].split('.')
+                            #content_type = ContentType.objects.get(app_label=app_label, model=model_name)
+                            try:
+                                Model = apps.get_model(reference[af]['model'])
+                                initial[af] = Model.objects.get(pk=reference[af]['pk'])
+                            except (KeyError, ObjectDoesNotExist):
+                                pass
+                        else:
+                            initial[af] = reference[af]
+            kwargs['initial'] = initial
+        super().__init__(*args, **kwargs)
 
     def clean(self):
         opts = self._meta
