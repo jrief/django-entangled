@@ -15,7 +15,7 @@ def titles():
 
 
 class MyForm(EntangledModelFormMixin, ModelForm):
-    test = fields.CharField()
+    test = fields.CharField(initial='Y')
     on_off = fields.BooleanField()
     title = ModelChoiceField(queryset=Title.objects.all(), empty_label=None)
     field_order = ['test', 'anything', 'on_off', 'title']
@@ -31,7 +31,7 @@ def test_unbound_form(titles):
     my_form = MyForm()
     assert my_form.is_bound is False
     expected = BeautifulSoup("""
-        <li><label for="id_test">Test:</label> <input type="text" name="test" required id="id_test"></li>
+        <li><label for="id_test">Test:</label> <input type="text" name="test" value="Y" required id="id_test"></li>
         <li><label for="id_anything">Anything:</label> <input type="text" name="anything" maxlength="5" id="id_anything"></li>
         <li><label for="id_on_off">On off:</label> <input type="checkbox" name="on_off" required id="id_on_off"></li>
         <li><label for="id_title">Title:</label> <select name="title" id="id_title">
@@ -80,6 +80,23 @@ def test_instance_form():
         <li><label for="id_title">Title:</label> <select name="title" id="id_title">
           <option value="1">Mrs.</option>
           <option value="2" selected>Mr.</option>
+          <option value="3">n/a</option>
+        </select></li>""", features='lxml')
+    assert BeautifulSoup(my_form.as_ul(), features='lxml') == expected
+
+
+@pytest.mark.django_db
+def test_instance_form_with_fallback():
+    instance = FreeModel.objects.create(glossary={'on_off': True})
+    my_form = MyForm(instance=instance)
+    assert my_form.is_bound is False
+    expected = BeautifulSoup("""
+        <li><label for="id_test">Test:</label> <input type="text" name="test" value="Y" required id="id_test"></li>
+        <li><label for="id_anything">Anything:</label> <input type="text" name="anything" maxlength="5" id="id_anything"></li>
+        <li><label for="id_on_off">On off:</label> <input type="checkbox" name="on_off" required id="id_on_off" checked></li>
+        <li><label for="id_title">Title:</label> <select name="title" id="id_title">
+          <option value="1">Mrs.</option>
+          <option value="2">Mr.</option>
           <option value="3">n/a</option>
         </select></li>""", features='lxml')
     assert BeautifulSoup(my_form.as_ul(), features='lxml') == expected
