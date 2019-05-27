@@ -27,9 +27,6 @@ class EntangledFormMetaclass(ModelFormMetaclass):
             if modelfield.name in entangled_fields.keys():
                 assert isinstance(modelfield, jsonfield.fields.JSONField), \
                     "Field `{}.{}` must be JSON serializable".format(class_name, modelfield.name)
-                for field_name in entangled_fields[modelfield.name]:
-                    assert field_name in attrs['declared_fields'], \
-                        "Field {} listed in `{}.Meta.entangled_fields` is missing".format(field_name, class_name)
                 return EntangledField(required=False, show_hidden_initial=False)
             return modelfield.formfield(**kwargs)
 
@@ -43,7 +40,13 @@ class EntangledFormMetaclass(ModelFormMetaclass):
         else:
             entangled_fields = None
         new_class = super(EntangledFormMetaclass, cls).__new__(cls, class_name, bases, attrs)
-        new_class._meta.entangled_fields = entangled_fields
+        if entangled_fields:
+            for modelfield_name in entangled_fields.keys():
+                for field_name in entangled_fields[modelfield_name]:
+                    assert field_name in new_class.base_fields, \
+                         "Field {} listed in `{}.Meta.entangled_fields['{}']` is missing in Form declaration".format(
+                            field_name, class_name, modelfield_name)
+            new_class._meta.entangled_fields = entangled_fields
         return new_class
 
 
