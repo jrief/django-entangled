@@ -1,5 +1,6 @@
 import jsonfield
-from django.contrib.contenttypes.models import ContentType, ContentTypeManager
+from django.apps import apps
+from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import ModelChoiceField, ModelFormMetaclass
 from django.forms.fields import Field
 from django.forms.widgets import Widget
@@ -79,9 +80,9 @@ class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
                 if af not in cleaned_data:
                     continue
                 if isinstance(self.base_fields[af], ModelChoiceField):
-                    content_type = ContentType.objects.get_for_model(cleaned_data[af])
+                    opts = cleaned_data[af]._meta
                     result[field_name][af] = {
-                        'model': '{}.{}'.format(content_type.app_label, content_type.model),
+                        'model': '{}.{}'.format(opts.app_label, opts.model_name),
                         'pk': cleaned_data[af].pk,
                     }
                 else:
