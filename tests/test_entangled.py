@@ -2,7 +2,7 @@ import pytest
 from bs4 import BeautifulSoup
 from django.forms import fields
 from django.forms.models import ModelForm, ModelChoiceField
-from entangled.models import EntangledModelFormMixin
+from entangled.forms import EntangledModelFormMixin
 from .models import FreeModel, Title
 
 
