@@ -15,7 +15,7 @@ A Django Model may contain JSON fields. Django itself, provides a
 [JSON field](https://docs.djangoproject.com/en/stable/ref/contrib/postgres/fields/#jsonfield) specific to Postgres.
 For other database implementations, there are plenty of alternatives.
 
-Typically, the widget to edit a JSON field is a `<textarea ...><textarea>`. This textarea widget is very
+Typically, the widget to associated with a JSON field is a `<textarea ...><textarea>`. This textarea widget is very
 inpracticable for editing. One possibility is to use a generic [JSON editor](https://github.com/josdejong/jsoneditor),
 which with some JavaScript, transforms the widget into an attribute-value-pair editor.
 This approach however prevents us from utilizing all the nice features provided by the Django form framework, such as
