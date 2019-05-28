@@ -15,13 +15,13 @@ A Django Model may contain JSON fields. Django itself, provides a
 [JSON field](https://docs.djangoproject.com/en/stable/ref/contrib/postgres/fields/#jsonfield) specific to Postgres.
 For other database implementations, there are plenty of alternatives.
 
-Typically, the widget associated with a JSON field is a `<textarea ...><textarea>`. This textarea widget is very
-inpracticable for editing. One possibility is to use a generic [JSON editor](https://github.com/josdejong/jsoneditor),
-which with some JavaScript, transforms the widget into an attribute-value-pair editor.
-This approach however prevents us from utilizing all the nice features provided by the Django form framework, such as
-field validation, normalization of data and the usage of foreign keys. By using **django-entangled**, one can use a
-form inheriting from Django's `ModelForm`, and store all or a subset of that form fields in one or more JSON fields
-inside of the associated model.
+When creating from from models, the widget associated with JSON fields, typically is a `<textarea ...><textarea>`.
+This textarea widget is very inpracticable for editing, because it just contains a textual representation of that
+object notation. One possibility is to use a generic [JSON editor](https://github.com/josdejong/jsoneditor),
+which with some JavaScript, transforms the widget into an attribute-value-pair editor. This approach however prevents
+us from utilizing all the nice features provided by the Django form framework, such as field validation, normalization
+of data and the usage of foreign keys. By using **django-entangled**, one can use a form inheriting from Django's
+`ModelForm`, and store all or a subset of that form fields in one or more JSON fields inside of the associated model.
 
 
 ## Installation
