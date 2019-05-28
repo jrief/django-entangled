@@ -26,7 +26,7 @@ class EntangledFormMetaclass(ModelFormMetaclass):
     def __new__(cls, class_name, bases, attrs):
         def formfield_callback(modelfield, **kwargs):
             if modelfield.name in entangled_fields.keys():
-                assert re.search('json', modelfield.form_class.__name__, re.IGNORECASE), \
+                assert re.search('json', modelfield.formfield().__class__.__name__, re.IGNORECASE), \
                     "Field `{}.{}` doesn't seem to be JSON serializable".format(class_name, modelfield.name)
                 return EntangledField(required=False, show_hidden_initial=False)
             return modelfield.formfield(**kwargs)
