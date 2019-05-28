@@ -15,11 +15,13 @@ A Django Model may contain JSON fields. Django itself, provides a
 [JSON field](https://docs.djangoproject.com/en/stable/ref/contrib/postgres/fields/#jsonfield) specific to Postgres.
 For other database implementations, there are plenty of alternatives.
 
-Typically, the widget to edit a JSON field is a `<textarea ...><textarea>`. This HTML element however is very
-inpracticable for editing. One possibility is to use a generic [JSON editor](https://github.com/josdejong/jsoneditor).
-This however prevents to use all the nice form validation features provided by Django forms. By using
-**django-entangled**, one can use a slightly modifed Django `ModelForm`, and store all or a subset of that form fields
-inside one or more JSON fields.
+Typically, the widget to edit a JSON field is a `<textarea ...><textarea>`. This textarea widget is very
+inpracticable for editing. One possibility is to use a generic [JSON editor](https://github.com/josdejong/jsoneditor),
+which with some JavaScript, transforms the widget into an attribute-value-pair editor.
+This approach however prevents to use all the nice features provided by the Django form framework, such as field
+validation, normalization of data and the usage of foreign keys. By using **django-entangled**, one can use a form
+inheriting from Django's `ModelForm`, and store all or a subset of that form fields inside one or more JSON fields
+inside of the associated model.
 
 
 ## Installation
@@ -58,6 +60,7 @@ inside a `<textarea ...><textarea>`. This definitely is not what we want! Instea
 special mixin class `EntangledModelFormMixin`.
 
 ```python
+from django.contrib.auth import get_user_model
 from django.forms import fields, models
 from entangled.forms import EntangledModelFormMixin
 from .models import Product
@@ -71,16 +74,22 @@ class ProductForm(EntangledModelFormMixin, models.ModelForm):
         choices=[('s', "small"), ('m', "medium"), ('l', "large"), ('xl', "extra large")],
     )
 
+    tenant = models.ModelChoiceField(
+        queryset=get_user_model().objects.filter(is_staff=True),
+    )
+
     class Meta:
         model = Product
-        fields = ['name', 'price']
-        entangled_fields = {'properties': ['color', 'size']}
+        fields = ['name', 'price']  # these fields are provided by Product
+        entangled_fields = {'properties': ['color', 'size', 'tenant']}  # fields provided by this form
 ```
 
 In addition to the mixin class `EntangledModelFormMixin` we add a special dictionary named `entangled_fields` to our
-`Meta`-options. The key (here `'properties'`) in this dictionary refers to the JSON-field of our model. The value (here
-`['color', 'size']`) is a list of named form fields, declared in our form- or base-class of therefore. This allows us,
-to assign standard Django form fields to arbitrary JSON fields declared in our Django model.
+`Meta`-options. The key (here `'properties'`) in this dictionary refers to the JSON-field in our model `Product`.
+The value (here `['color', 'size', 'tenant']`) is a list of named form fields, declared in our form- or base-class of
+therefore. This allows us, to assign all standard Django form fields to arbitrary JSON fields declared in our Django
+model. Moreover, we can even use a `ModelChoiceField` to refer to another model object using a
+[generic relation](https://docs.djangoproject.com/en/stable/ref/contrib/contenttypes/#generic-relations)
 
 We can use this form in any Django detail view. A typical use-case, is the built-in Django ModelAdmin:
 
@@ -98,3 +107,10 @@ Since the form used by this `ModelAdmin`-class
 [can not be created dynamically](https://docs.djangoproject.com/en/stable/ref/contrib/admin/#django.contrib.admin.ModelAdmin.form),
 we have to declare it explicitly using the `form`-attribute. This is the only change which has to be performed, in
 order to store arbitrary content inside our JSON model-fields.
+
+
+## Caveats
+
+Due to the nature of JSON, indexing and thus building filters or sorting rules based on the fields content is not as
+simple, as with standard model fields. Therefore, this approach is best suited, if the main focus is to store data,
+rather than digging through data.
