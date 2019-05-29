@@ -121,6 +121,16 @@ Due to the nature of JSON, indexing and thus building filters or sorting rules b
 simple, as with standard model fields. Therefore, this approach is best suited, if the main focus is to store data,
 rather than digging through data.
 
-Foreign keys are stored as `"fieldname": {"model": "appname.modelname", "pk": 1234}` in our JSON field. This means that
+Foreign keys are stored as `"fieldname": {"model": "appname.modelname", "pk": 1234}` in our JSON field, meaning that
 we have no database constraints. If a target object is deleted, that foreign key points to nowhere. Therefore always
-keep in mind, that we don't have any referential integrity and hence must consider this, when writing our code.
+keep in mind, that we don't have any referential integrity and hence must writing our code in a defensive manner.
+
+
+## Changes
+
+- 0.2
+  * Introduce `Meta`-option `untangled_fields`, because the approach in 0.1 didn't always work.
+  * Use `formfield()`-method, for portability reasons with Django's Postgres JSON field.
+
+- 0.1
+  * Initial release
