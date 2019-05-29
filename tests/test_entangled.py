@@ -22,7 +22,7 @@ class MyForm(EntangledModelFormMixin, ModelForm):
 
     class Meta:
         model = FreeModel
-        fields = ['anything']
+        untangled_fields = ['anything']
         entangled_fields = {'glossary': ['test', 'on_off', 'title']}
 
 

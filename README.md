@@ -80,8 +80,8 @@ class ProductForm(EntangledModelFormMixin, models.ModelForm):
 
     class Meta:
         model = Product
-        fields = ['name', 'price']  # these fields are provided by the Product model
         entangled_fields = {'properties': ['color', 'size', 'tenant']}  # fields provided by this form
+        untangled_fields = ['name', 'price']  # these fields are provided by the Product model
 ```
 
 In addition to the mixin class `EntangledModelFormMixin` we add a special dictionary named `entangled_fields` to our
@@ -90,6 +90,12 @@ The value (here `['color', 'size', 'tenant']`) is a list of named form fields, d
 therefore. This allows us, to assign all standard Django form fields to arbitrary JSON fields declared in our Django
 model. Moreover, we can even use a `ModelChoiceField` to refer to another model object using a
 [generic relation](https://docs.djangoproject.com/en/stable/ref/contrib/contenttypes/#generic-relations)
+
+Since in this form we also want to access the non-JSON fields from our Django model, we add a list named
+`untangled_fields` to our `Meta`-options. In this list, (here `['name', 'price']`) we refer to the non-JSON fields
+in our model `Product`. From both of these iterables, `entangled_fields` and `untangled_fields`, the mixin class
+`EntangledModelFormMixin` then builds the `Meta`-option `fields`, otherwise required. Therefore there is no need
+to explicitly declare this list.
 
 We can use this form in any Django detail view. A typical use-case, is the built-in Django ModelAdmin:
 
