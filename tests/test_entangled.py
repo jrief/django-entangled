@@ -1,10 +1,16 @@
 import pytest
 from bs4 import BeautifulSoup
+from django import VERSION as DJANGO_VERSION
 from django.contrib.auth import get_user_model
 from django.forms import fields, widgets
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
 from entangled.forms import EntangledModelForm, get_related_object, get_related_queryset
 from .models import Product, Category
+
+if DJANGO_VERSION < (2, 1):
+    html_multiple = 'multiple="multiple"'
+else:
+    html_multiple = 'multiple'
 
 
 @pytest.fixture(autouse=True)
@@ -49,10 +55,10 @@ def test_unbound_form():
         </select></li>
         <li><label for="id_description">Description:</label> <textarea name="description" cols="40" rows="10" id="id_description">
 </textarea></li>
-        <li><label for="id_categories">Categories:</label> <select name="categories" id="id_categories" multiple>
+        <li><label for="id_categories">Categories:</label> <select name="categories" id="id_categories" {multiple}>
           <option value="1">Paraphernalia</option>
           <option value="2">Detergents</option>
-        </select></li>""", features='lxml')
+        </select></li>""".format(multiple=html_multiple), features='lxml')
     assert BeautifulSoup(product_form.as_ul(), features='lxml') == expected
 
 
@@ -103,28 +109,11 @@ def test_instance_form():
         </select></li>
         <li><label for="id_description">Description:</label> <textarea name="description" cols="40" rows="10" id="id_description">
 Cleaning tool consisting of stiff fibers</textarea></li>
-        <li><label for="id_categories">Categories:</label> <select name="categories" id="id_categories" multiple>
+        <li><label for="id_categories">Categories:</label> <select name="categories" id="id_categories" {multiple}>
           <option value="1" selected>Paraphernalia</option>
           <option value="2" selected>Detergents</option>
-        </select></li>""", features='lxml')
+        </select></li>""".format(multiple=html_multiple), features='lxml')
     assert BeautifulSoup(product_form.as_ul(), features='lxml') == expected
-
-
-@pytest.mark.django_db
-def XXXtest_instance_form_with_fallback():
-    instance = Product.objects.create(glossary={'on_off': True})
-    my_form = ProductForm(instance=instance)
-    assert my_form.is_bound is False
-    expected = BeautifulSoup("""
-        <li><label for="id_test">Test:</label> <input type="text" name="test" value="Y" required id="id_test"></li>
-        <li><label for="id_anything">Anything:</label> <input type="text" name="anything" maxlength="5" id="id_anything"></li>
-        <li><label for="id_on_off">On off:</label> <input type="checkbox" name="on_off" required id="id_on_off" checked></li>
-        <li><label for="id_title">Title:</label> <select name="title" id="id_title">
-          <option value="1">Mrs.</option>
-          <option value="2">Mr.</option>
-          <option value="3">n/a</option>
-        </select></li>""", features='lxml')
-    assert BeautifulSoup(my_form.as_ul(), features='lxml') == expected
 
 
 @pytest.mark.django_db
@@ -178,10 +167,11 @@ def test_form_inheritance():
         </select></li>
         <li><label for="id_active">Active:</label> <input type="checkbox" name="active" required id="id_active"></li>
         <li><label for="id_weight">Weight:</label> <input type="number" name="weight" step="0.1" required id="id_weight"></li>
-        <li><label for="id_categories">Categories:</label> <select name="categories" id="id_categories" multiple>
+        <li><label for="id_categories">Categories:</label> <select name="categories" id="id_categories" {multiple}>
           <option value="1">Paraphernalia</option>
           <option value="2">Detergents</option>
-        </select><input type="hidden" name="description" value="XY" id="id_description"></li>""", features='lxml')
+        </select><input type="hidden" name="description" value="XY" id="id_description"></li>""".format(multiple=html_multiple),
+        features='lxml')
     assert BeautifulSoup(product_form.as_ul(), features='lxml') == expected
 
 
