@@ -1,9 +1,10 @@
 import re
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
-from django.forms.models import ModelChoiceField, ModelFormMetaclass
+from django.forms.models import ModelChoiceField, ModelFormMetaclass, ModelForm
 from django.forms.fields import Field
 from django.forms.widgets import Widget
+from django.db.models import Model
 
 
 class InvisibleWidget(Widget):
@@ -66,11 +67,11 @@ class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
                             try:
                                 Model = apps.get_model(reference[af]['model'])
                                 initial[af] = Model.objects.get(pk=reference[af]['pk'])
-                            except (KeyError, ObjectDoesNotExist):
+                            except (KeyError, ObjectDoesNotExist, TypeError):
                                 pass
                         else:
                             initial[af] = reference[af]
-            kwargs['initial'] = initial
+            kwargs.setdefault('initial', initial)
         super().__init__(*args, **kwargs)
 
     def clean(self):
@@ -82,7 +83,7 @@ class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
             for af in assigned_fields:
                 if af not in cleaned_data:
                     continue
-                if isinstance(self.base_fields[af], ModelChoiceField):
+                if isinstance(self.base_fields[af], ModelChoiceField) and isinstance(cleaned_data[af], Model):
                     opts = cleaned_data[af]._meta
                     result[field_name][af] = {
                         'model': '{}.{}'.format(opts.app_label, opts.model_name),
@@ -91,3 +92,21 @@ class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
                 else:
                     result[field_name][af] = cleaned_data[af]
         return result
+
+
+class EntangledModelForm(EntangledModelFormMixin, ModelForm):
+    """
+    A convenience class to create entangled model forms.
+    """
+
+
+def get_related_object(scope, field_name):
+    """
+    Returns the related field, referenced by the content of a ModelChoiceField.
+    """
+    try:
+        Model = apps.get_model(scope[field_name]['model'])
+        relobj = Model.objects.get(pk=scope[field_name]['pk'])
+    except (KeyError, ObjectDoesNotExist, TypeError):
+        relobj = None
+    return relobj
