@@ -2,7 +2,7 @@ from django.db import models
 from jsonfield import JSONField
 
 
-class Title(models.Model):
+class Category(models.Model):
     identifier = models.CharField(
         max_length=10,
     )
@@ -11,11 +11,11 @@ class Title(models.Model):
         return self.identifier
 
 
-class FreeModel(models.Model):
-    anything = models.CharField(
-        max_length=5,
+class Product(models.Model):
+    name = models.CharField(
+        max_length=20,
         blank=True,
         null=True,
     )
 
-    glossary = JSONField(default={})
+    properties = JSONField()
