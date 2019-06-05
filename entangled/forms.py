@@ -35,11 +35,11 @@ class EntangledFormMetaclass(ModelFormMetaclass):
                 return EntangledField(required=False, show_hidden_initial=False)
             return modelfield.formfield(**kwargs)
 
-        if 'Meta' not in attrs:
-            return super(EntangledFormMetaclass, cls).__new__(cls, class_name, bases, attrs)
-
-        untangled_fields = getattr(attrs['Meta'], 'untangled_fields', [])
-        entangled_fields = getattr(attrs['Meta'], 'entangled_fields', {})
+        if 'Meta' in attrs:
+            untangled_fields = getattr(attrs['Meta'], 'untangled_fields', [])
+            entangled_fields = getattr(attrs['Meta'], 'entangled_fields', {})
+        else:
+            untangled_fields, entangled_fields = [], {}
         if entangled_fields:
             fieldset = set(getattr(attrs['Meta'], 'fields', []))
             fieldset.update(untangled_fields)
@@ -58,9 +58,10 @@ class EntangledFormMetaclass(ModelFormMetaclass):
         # merge untangled and entangled fields from base classes
         for base in bases:
             if hasattr(base, '_meta'):
-                untangled_fields = getattr(base._meta, 'untangled_fields', []) + untangled_fields
+                untangled_fields.extend(getattr(base._meta, 'untangled_fields', []))
                 for key, fields in getattr(base._meta, 'entangled_fields', {}).items():
-                    entangled_fields[key] = fields + entangled_fields[key]
+                    entangled_fields.setdefault(key, [])
+                    entangled_fields[key].extend(fields)
         new_class._meta.entangled_fields = entangled_fields
         new_class._meta.untangled_fields = untangled_fields
         return new_class
