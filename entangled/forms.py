@@ -1,4 +1,5 @@
 import re
+from copy import deepcopy
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField, ModelFormMetaclass, ModelForm
@@ -36,8 +37,8 @@ class EntangledFormMetaclass(ModelFormMetaclass):
             return modelfield.formfield(**kwargs)
 
         if 'Meta' in attrs:
-            untangled_fields = getattr(attrs['Meta'], 'untangled_fields', [])
-            entangled_fields = getattr(attrs['Meta'], 'entangled_fields', {})
+            untangled_fields = list(getattr(attrs['Meta'], 'untangled_fields', []))
+            entangled_fields = deepcopy(getattr(attrs['Meta'], 'entangled_fields', {}))
         else:
             untangled_fields, entangled_fields = [], {}
         if entangled_fields:
