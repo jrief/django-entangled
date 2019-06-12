@@ -62,10 +62,10 @@ the special mixin class `EntangledModelFormMixin`.
 ```python
 from django.contrib.auth import get_user_model
 from django.forms import fields, models
-from entangled.forms import EntangledModelFormMixin
+from entangled.forms import EntangledModelForm
 from .models import Product
 
-class ProductForm(EntangledModelFormMixin, models.ModelForm):
+class ProductForm(EntangledModelForm):
     color = fields.RegexField(
         regex=r'^#[0-9a-f]{6}$',
     )
@@ -128,9 +128,18 @@ keep in mind, that we don't have any referential integrity and hence must writin
 
 ## Changes
 
+- 0.3
+  * Add support for `ModelMultipleChoiceField`.
+  * Fix: Make a deep copy of `entangled_fields` and `untangled_fields` before merging.
+  * Add covenience class `EntangledModelForm`.
+  * Moving data from entangled fields onto their compressed representation, now is performed in
+    after the form has performed its own `clean()`, so that accessing form fields is more natural.
+  * Add functions `get_related_object` and `get_related_queryset` to get the model object from its
+    JSON representation.
+
 - 0.2
   * Introduce `Meta`-option `untangled_fields`, because the approach in 0.1 didn't always work.
   * Use `formfield()`-method, for portability reasons with Django's Postgres JSON field.
 
 - 0.1
-  * Initial release
+  * Initial release.
