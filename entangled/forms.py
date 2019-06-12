@@ -22,7 +22,13 @@ class InvisibleWidget(Widget):
 
 
 class EntangledField(Field):
+    """
+    A pseudo field, which can be used to mimic a field value, which actually is not rendered inside the form.
+    """
     widget = InvisibleWidget
+
+    def __init__(self, required=False, *args, **kwargs):
+        super().__init__(required=required, *args, **kwargs)
 
 
 class EntangledFormMetaclass(ModelFormMetaclass):
@@ -33,7 +39,7 @@ class EntangledFormMetaclass(ModelFormMetaclass):
                 # that we just check if "json" is part of the formfield's classname.
                 assert re.search('json', modelfield.formfield().__class__.__name__, re.IGNORECASE), \
                     "Field `{}.{}` doesn't seem to be JSON serializable.".format(class_name, modelfield.name)
-                return EntangledField(required=False, show_hidden_initial=False)
+                return EntangledField(show_hidden_initial=False)
             return modelfield.formfield(**kwargs)
 
         if 'Meta' in attrs:
@@ -47,7 +53,7 @@ class EntangledFormMetaclass(ModelFormMetaclass):
             fieldset.update(entangled_fields.keys())
             attrs['Meta'].fields = list(fieldset)
             attrs['formfield_callback'] = formfield_callback
-        new_class = super(EntangledFormMetaclass, cls).__new__(cls, class_name, bases, attrs)
+        new_class = super().__new__(cls, class_name, bases, attrs)
 
         # perform some model checks
         for modelfield_name in entangled_fields.keys():
@@ -94,30 +100,30 @@ class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
             kwargs.setdefault('initial', initial)
         super().__init__(*args, **kwargs)
 
-    def clean(self):
+    def _clean_form(self):
         opts = self._meta
-        cleaned_data = super().clean()
-        result = {f: cleaned_data[f] for f in opts.untangled_fields if f in cleaned_data}
+        super()._clean_form()
+        cleaned_data = {f: self.cleaned_data[f] for f in opts.untangled_fields if f in self.cleaned_data}
         for field_name, assigned_fields in opts.entangled_fields.items():
-            result[field_name] = {}
+            cleaned_data[field_name] = {}
             for af in assigned_fields:
-                if af not in cleaned_data:
+                if af not in self.cleaned_data:
                     continue
-                if isinstance(self.base_fields[af], ModelMultipleChoiceField) and isinstance(cleaned_data[af], QuerySet):
-                    opts = cleaned_data[af].model._meta
-                    result[field_name][af] = {
+                if isinstance(self.base_fields[af], ModelMultipleChoiceField) and isinstance(self.cleaned_data[af], QuerySet):
+                    opts = self.cleaned_data[af].model._meta
+                    cleaned_data[field_name][af] = {
                         'model': '{}.{}'.format(opts.app_label, opts.model_name),
-                        'p_keys': list(cleaned_data[af].values_list('pk', flat=True)),
+                        'p_keys': list(self.cleaned_data[af].values_list('pk', flat=True)),
                     }
-                elif isinstance(self.base_fields[af], ModelChoiceField) and isinstance(cleaned_data[af], Model):
-                    opts = cleaned_data[af]._meta
-                    result[field_name][af] = {
+                elif isinstance(self.base_fields[af], ModelChoiceField) and isinstance(self.cleaned_data[af], Model):
+                    opts = self.cleaned_data[af]._meta
+                    cleaned_data[field_name][af] = {
                         'model': '{}.{}'.format(opts.app_label, opts.model_name),
-                        'pk': cleaned_data[af].pk,
+                        'pk': self.cleaned_data[af].pk,
                     }
                 else:
-                    result[field_name][af] = cleaned_data[af]
-        return result
+                    cleaned_data[field_name][af] = self.cleaned_data[af]
+        self.cleaned_data = cleaned_data
 
 
 class EntangledModelForm(EntangledModelFormMixin, ModelForm):
