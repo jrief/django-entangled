@@ -57,7 +57,7 @@ In a typical form editing view, we would create a form inheriting from
 [ModelForm](https://docs.djangoproject.com/en/stable/topics/forms/modelforms/#modelform) and refer to this model using
 the `model` attribute in the `Meta`-class. Then the `properties`-field would show up as unstructured JSON, rendered
 inside a `<textarea ...><textarea>`. This definitely is not what we want! Instead we create a typical Django Form using
-the special mixin class `EntangledModelFormMixin`.
+the special mixin class `EntangledModelForm`.
 
 ```python
 from django.contrib.auth import get_user_model
@@ -93,8 +93,8 @@ using a [generic relation](https://docs.djangoproject.com/en/stable/ref/contrib/
 
 Since in this form we also want to access the non-JSON fields from our Django model, we add a list named
 `untangled_fields` to our `Meta`-options. In this list, (here `['name', 'price']`) we refer to the non-JSON fields
-in our model `Product`. From both of these iterables, `entangled_fields` and `untangled_fields`, the mixin class
-`EntangledModelFormMixin` then builds the `Meta`-option `fields`, otherwise required. Therefore you should not
+in our model `Product`. From both of these iterables, `entangled_fields` and `untangled_fields`, the parent class
+`EntangledModelForm` then builds the `Meta`-option `fields`, otherwise required. Therefore you should not
 use `fields` to declare this list, but rather rely on `entangled_fields` and `untangled_fields`.
 
 We can use this form in any Django detail view. A typical use-case, is the built-in Django ModelAdmin:
