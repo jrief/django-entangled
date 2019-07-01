@@ -84,12 +84,13 @@ class ProductForm(EntangledModelForm):
         untangled_fields = ['name', 'price']  # these fields are provided by the Product model
 ```
 
-In case our form inherits from another form, rewrite the class declarartion as
+In case our form inherits from another `ModelForm`, rewrite the class declarartion as:
 
 ```python
 class ProductForm(EntangledModelFormMixin, BaseProductForm):
     ...
 ```
+
 In addition we add a special dictionary named `entangled_fields` to our `Meta`-options. In this dictionary, the key
 (here `'properties'`) refers to the JSON-field in our model `Product`. The value (here `['color', 'size', 'tenant']`)
 is a list of named form fields, declared in our form- or base-class of thereof. This allows us to assign all standard
@@ -99,8 +100,8 @@ or a `ModelMultipleChoiceField` to refer to another model object using a
 
 Since in this form we also want to access the non-JSON fields from our Django model, we add a list named
 `untangled_fields` to our `Meta`-options. In this list, (here `['name', 'price']`) we refer to the non-JSON fields
-in our model `Product`. From both of these iterables, `entangled_fields` and `untangled_fields`, the mixin class
-`EntangledModelFormMixin` then builds the `Meta`-option `fields`, otherwise required. Therefore you should not
+in our model `Product`. From both of these iterables, `entangled_fields` and `untangled_fields`, the parent class
+`EntangledModelForm` then builds the `Meta`-option `fields`, otherwise required. Therefore you should not
 use `fields` to declare this list, but rather rely on `entangled_fields` and `untangled_fields`.
 
 We can use this form in any Django form view. A typical use-case, is the built-in Django `ModelAdmin`:
