@@ -139,8 +139,8 @@ keep in mind, that we don't have any referential integrity and hence must writin
   * Add support for `ModelMultipleChoiceField`.
   * Fix: Make a deep copy of `entangled_fields` and `untangled_fields` before merging.
   * Add covenience class `EntangledModelForm`.
-  * Moving data from entangled fields onto their compressed representation, now is performed in
-    after the form has performed its own `clean()`, so that accessing form fields is more natural.
+  * Moving data from entangled fields onto their compressed representation, now is performed after
+    the form has performed its own `clean()`-call, so that accessing form fields is more natural.
   * Add functions `get_related_object` and `get_related_queryset` to get the model object from its
     JSON representation.
 
