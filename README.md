@@ -55,8 +55,8 @@ class Product(models.Model):
 
 In a typical form editing view, we would create a form inheriting from
 [ModelForm](https://docs.djangoproject.com/en/stable/topics/forms/modelforms/#modelform) and refer to this model using
-the `model` attribute in the `Meta`-class. Then the `properties`-field would show up as unstructured JSON, rendered
-inside a `<textarea ...><textarea>`. This definitely is not what we want! Instead we create a typical Django Form using
+the `model` attribute in its `Meta`-class. Then the `properties`-field would show up as unstructured JSON, rendered
+inside a `<textarea ...></textarea>`. This definitely is not what we want! Instead we create a typical Django Form using
 the alternative class `EntangledModelForm`.
 
 ```python
