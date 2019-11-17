@@ -2,6 +2,7 @@ import re
 from copy import deepcopy
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.admin.utils import flatten
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField, ModelFormMetaclass, ModelForm
 from django.forms.fields import Field
 from django.forms.widgets import Widget
@@ -31,6 +32,15 @@ class EntangledField(Field):
         super().__init__(required=required, *args, **kwargs)
 
 
+def flatten_entangled_fields(cls, entangled_fields):
+    """
+    Preserve the deepcopy entangled_fields, who contains fieldset descripted with sub: lists or tuples.
+    """
+    cls.entangled_fields_flatten={}
+    for key, fields in entangled_fields.items():
+        cls.entangled_fields_flatten.update({key:flatten(fields)})
+
+
 class EntangledFormMetaclass(ModelFormMetaclass):
     def __new__(cls, class_name, bases, attrs):
         def formfield_callback(modelfield, **kwargs):
@@ -48,6 +58,8 @@ class EntangledFormMetaclass(ModelFormMetaclass):
         else:
             untangled_fields, entangled_fields = [], {}
         if entangled_fields:
+            for keys, fields in entangled_fields.items():
+                entangled_fields.update({ keys : list(fields)})
             fieldset = set(getattr(attrs['Meta'], 'fields', []))
             fieldset.update(untangled_fields)
             fieldset.update(entangled_fields.keys())
@@ -56,8 +68,9 @@ class EntangledFormMetaclass(ModelFormMetaclass):
         new_class = super().__new__(cls, class_name, bases, attrs)
 
         # perform some model checks
-        for modelfield_name in entangled_fields.keys():
-            for field_name in entangled_fields[modelfield_name]:
+        flatten_entangled_fields(cls,entangled_fields)
+        for modelfield_name in cls.entangled_fields_flatten.keys():
+            for field_name in cls.entangled_fields_flatten[modelfield_name]:
                 assert field_name in new_class.base_fields, \
                      "Field {} listed in `{}.Meta.entangled_fields['{}']` is missing in Form declaration".format(
                         field_name, class_name, modelfield_name)
@@ -68,6 +81,7 @@ class EntangledFormMetaclass(ModelFormMetaclass):
                 untangled_fields.extend(getattr(base._meta, 'untangled_fields', []))
                 for key, fields in getattr(base._meta, 'entangled_fields', {}).items():
                     entangled_fields.setdefault(key, [])
+                    fields=reversed(fields)
                     entangled_fields[key].extend(fields)
         new_class._meta.entangled_fields = entangled_fields
         new_class._meta.untangled_fields = untangled_fields
@@ -79,7 +93,8 @@ class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
         opts = self._meta
         if 'instance' in kwargs and kwargs['instance']:
             initial = kwargs['initial'] if 'initial' in kwargs else {}
-            for field_name, assigned_fields in opts.entangled_fields.items():
+            flatten_entangled_fields(self,opts.entangled_fields)
+            for field_name, assigned_fields in self.entangled_fields_flatten.items():
                 reference = getattr(kwargs['instance'], field_name)
                 for af in assigned_fields:
                     if af in reference:
@@ -97,7 +112,7 @@ class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
                                 pass
                         else:
                             initial[af] = reference[af]
-            kwargs.setdefault('initial', initial)
+            kwargs.setdefault('initial', initial)       
         super().__init__(*args, **kwargs)
 
     def _clean_form(self):
