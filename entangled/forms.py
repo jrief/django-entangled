@@ -36,9 +36,9 @@ def flatten_entangled_fields(cls, entangled_fields):
     """
     Preserve the deepcopy entangled_fields, who contains fieldset descripted with sub: lists or tuples.
     """
-    cls.entangled_fields_flatten={}
+    cls.entangled_fields_flattened={}
     for key, fields in entangled_fields.items():
-        cls.entangled_fields_flatten.update({key:flatten(fields)})
+        cls.entangled_fields_flattened.update({key:flatten(fields)})
 
 
 class EntangledFormMetaclass(ModelFormMetaclass):
@@ -69,8 +69,8 @@ class EntangledFormMetaclass(ModelFormMetaclass):
 
         # perform some model checks
         flatten_entangled_fields(cls,entangled_fields)
-        for modelfield_name in cls.entangled_fields_flatten.keys():
-            for field_name in cls.entangled_fields_flatten[modelfield_name]:
+        for modelfield_name in cls.entangled_fields_flattened.keys():
+            for field_name in cls.entangled_fields_flattened[modelfield_name]:
                 assert field_name in new_class.base_fields, \
                      "Field {} listed in `{}.Meta.entangled_fields['{}']` is missing in Form declaration".format(
                         field_name, class_name, modelfield_name)
@@ -94,7 +94,7 @@ class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
         if 'instance' in kwargs and kwargs['instance']:
             initial = kwargs['initial'] if 'initial' in kwargs else {}
             flatten_entangled_fields(self,opts.entangled_fields)
-            for field_name, assigned_fields in self.entangled_fields_flatten.items():
+            for field_name, assigned_fields in self.entangled_fields_flattened.items():
                 reference = getattr(kwargs['instance'], field_name)
                 for af in assigned_fields:
                     if af in reference:
