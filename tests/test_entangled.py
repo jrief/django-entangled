@@ -39,8 +39,8 @@ class ProductForm(EntangledModelForm):
     class Meta:
         model = Product
         untangled_fields = ['name']
-        #test with nested lists
-        entangled_fields = {'properties': [['active', 'tenant'], 'description', ['categories']]}
+        # Test with nested lists and tulpes.
+        entangled_fields = {'properties': [['active', 'tenant'], ('description',), ['categories']]}
 
 
 @pytest.mark.django_db
@@ -158,7 +158,8 @@ def test_form_inheritance():
 
     product_form = HeavyProductForm()
     product_form._meta.untangled_fields == ['name']
-    product_form._meta.entangled_fields == {'properties': ['active', 'tenant', 'description', 'weight']}
+    # Test with nested tuples
+    product_form._meta.entangled_fields == {'properties': ('active', ('tenant', 'description',), 'weight',)}
     assert product_form.is_bound is False
     expected = BeautifulSoup("""
         <li><label for="id_name">Name:</label> <input type="text" name="name" required id="id_name"></li>
