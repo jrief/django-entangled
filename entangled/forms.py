@@ -81,8 +81,7 @@ class EntangledFormMetaclass(ModelFormMetaclass):
                 untangled_fields.extend(getattr(base._meta, 'untangled_fields', []))
                 for key, fields in getattr(base._meta, 'entangled_fields', {}).items():
                     entangled_fields.setdefault(key, [])
-                    fields=reversed(fields)
-                    entangled_fields[key].extend(fields)
+                    entangled_fields[key][:0] = fields
         new_class._meta.entangled_fields = entangled_fields
         new_class._meta.untangled_fields = untangled_fields
         return new_class
