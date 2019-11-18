@@ -39,7 +39,8 @@ class ProductForm(EntangledModelForm):
     class Meta:
         model = Product
         untangled_fields = ['name']
-        entangled_fields = {'properties': ['active', 'tenant', 'description', 'categories']}
+        #test with nested lists
+        entangled_fields = {'properties': [['active', 'tenant'], 'description', ['categories']]}
 
 
 @pytest.mark.django_db
