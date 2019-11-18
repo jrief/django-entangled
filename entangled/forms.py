@@ -119,7 +119,8 @@ class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
         opts = self._meta
         super()._clean_form()
         cleaned_data = {f: self.cleaned_data[f] for f in opts.untangled_fields if f in self.cleaned_data}
-        for field_name, assigned_fields in opts.entangled_fields.items():
+        flatten_entangled_fields(self,opts.entangled_fields)
+        for field_name, assigned_fields in self.entangled_fields_flattened.items():
             cleaned_data[field_name] = {}
             for af in assigned_fields:
                 if af not in self.cleaned_data:
