@@ -55,16 +55,25 @@ class EntangledFormMetaclass(ModelFormMetaclass):
         if 'Meta' in attrs:
             untangled_fields = list(getattr(attrs['Meta'], 'untangled_fields', []))
             entangled_fields = deepcopy(getattr(attrs['Meta'], 'entangled_fields', {}))
+            entangled_field_subsets = getattr(attrs['Meta'], 'entangled_field_subsets', ())
+            entangled_field_subsets_list = deepcopy(getattr(attrs['Meta'], 'entangled_field_subsets_list', []))
         else:
-            untangled_fields, entangled_fields = [], {}
+            untangled_fields, entangled_fields, entangled_field_subsets, entangled_field_subsets_list = [], {}, (), []
         if entangled_fields:
             for keys, fields in entangled_fields.items():
-                entangled_fields.update({ keys : list(fields)})
+                entangled_fields.update({keys:list(fields)})
+                list_fields=list(fields)
+            if entangled_field_subsets and  entangled_field_subsets != []:
+                subsets = list(entangled_field_subsets)
+            else:
+                subsets = [( None, {"fields":list_fields})]
             fieldset = set(getattr(attrs['Meta'], 'fields', []))
             fieldset.update(untangled_fields)
             fieldset.update(entangled_fields.keys())
+            entangled_field_subsets_list.extend([subsets])
             attrs['Meta'].fields = list(fieldset)
             attrs['formfield_callback'] = formfield_callback
+            attrs['Meta'].entangled_field_subsets_list = entangled_field_subsets_list
         new_class = super().__new__(cls, class_name, bases, attrs)
 
         # perform some model checks
@@ -79,11 +88,14 @@ class EntangledFormMetaclass(ModelFormMetaclass):
         for base in bases:
             if hasattr(base, '_meta'):
                 untangled_fields.extend(getattr(base._meta, 'untangled_fields', []))
+                entangled_field_subsets_list[:0] = getattr(base._meta, 'entangled_field_subsets_list', [])
                 for key, fields in getattr(base._meta, 'entangled_fields', {}).items():
                     entangled_fields.setdefault(key, [])
                     entangled_fields[key][:0] = fields
         new_class._meta.entangled_fields = entangled_fields
         new_class._meta.untangled_fields = untangled_fields
+        new_class._meta.entangled_field_subsets = entangled_field_subsets
+        new_class._meta.entangled_field_subsets_list = entangled_field_subsets_list
         return new_class
 
 
@@ -110,8 +122,12 @@ class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
                             except (KeyError, ObjectDoesNotExist, TypeError):
                                 pass
                         else:
-                            initial[af] = reference[af]
-            kwargs.setdefault('initial', initial)       
+                            if reference[af]:
+                                initial[af] = reference[af]
+                            else:
+                                initial[af] = ''
+
+            kwargs.setdefault('initial', initial)
         super().__init__(*args, **kwargs)
 
     def _clean_form(self):
