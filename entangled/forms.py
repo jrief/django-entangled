@@ -34,11 +34,44 @@ class EntangledField(Field):
 
 def flatten_entangled_fields(cls, entangled_fields):
     """
-    Preserve the deepcopy entangled_fields, who contains fieldset descripted with sub: lists or tuples.
+    Preserve the deepcopy entangled_fields, who contains fieldset descripted with nested lists or tuples.
     """
     cls.entangled_fields_flattened={}
     for key, fields in entangled_fields.items():
         cls.entangled_fields_flattened.update({key:flatten(fields)})
+
+
+def gen_separate_fieldsets(form):
+    """
+    The mixins of entangled forms are transformed into a separate set of fieldsets.
+    Nested lists and tuples are preserved.
+    Each entangled form mixins can have classes css for example.
+    """
+    fields_sets=[]
+    for _fieldsets in form._meta.entangled_field_subsets_list:
+        fields_sets.append(_fieldsets[0],)
+    if form._meta.untangled_fields != []:
+        fields_sets += (tuple(( None, {"fields":tuple(form._meta.untangled_fields)})),)
+    fields_sets += (tuple(( None, {"fields":list(form._meta.entangled_fields.keys())})),)
+    return fields_sets
+
+
+def gen_single_fieldsets(form):
+    """
+    The mixins of entangled forms are returned for in a single fieldsets.
+    Nested lists and tuples are preserved. 
+    """
+    fields_sets=[]
+    for entangled_fields_key in form._meta.entangled_fields.keys():
+        if form._meta.untangled_fields == []:
+            fields_sets= form._meta.entangled_fields[entangled_fields_key]
+            fields_sets+=tuple([entangled_fields_key])
+        else:
+            form._meta.entangled_fields[entangled_fields_key] = tuple(form._meta.entangled_fields[entangled_fields_key])
+            form._meta.entangled_fields[entangled_fields_key] += tuple((form._meta.untangled_fields,))
+            form._meta.entangled_fields[entangled_fields_key] += tuple([entangled_fields_key])
+            fields_sets = form._meta.entangled_fields[entangled_fields_key]
+    return  (( None, {"fields":fields_sets}),)
 
 
 class EntangledFormMetaclass(ModelFormMetaclass):
