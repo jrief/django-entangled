@@ -4,7 +4,8 @@ from django import VERSION as DJANGO_VERSION
 from django.contrib.auth import get_user_model
 from django.forms import fields, widgets
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
-from entangled.forms import EntangledModelForm, get_related_object, get_related_queryset
+from entangled.forms import EntangledModelForm, get_related_object, get_related_queryset,\
+  gen_single_fieldsets, gen_separate_fieldsets
 from .models import Product, Category
 
 if DJANGO_VERSION < (2, 1):
@@ -41,6 +42,7 @@ class ProductForm(EntangledModelForm):
         untangled_fields = ['name']
         # Test with nested lists and tulpes.
         entangled_fields = {'properties': [['active', 'tenant'], ('description',), ['categories']]}
+        entangled_field_subsets=[(None, { 'classes':('custom_help',), "fields":entangled_fields['properties']})]
 
 
 @pytest.mark.django_db
@@ -197,3 +199,17 @@ def test_get_related_queryset():
     assert issubclass(categories.model, Category)
     assert categories.count() == 2
     assert get_related_queryset(properties, 'xyz') is None
+
+
+@pytest.mark.django_db
+def test_form_fieldsets_separate():
+    product_form = ProductForm(data={})
+    assert product_form.is_bound
+    assert gen_separate_fieldsets(product_form) == [(None, {'classes':('custom_help',), "fields":[['active', 'tenant'], ('description',), ['categories']]}),(None, {'fields': ('name',)}),(None, { "fields":['properties']})]
+
+
+@pytest.mark.django_db
+def test_form_fieldsets_single():
+    product_form = ProductForm(data={})
+    assert product_form.is_bound
+    assert gen_single_fieldsets(product_form) == ((None, {"fields":(['active', 'tenant'], ('description',), ['categories'], ['name'], 'properties')}),)
