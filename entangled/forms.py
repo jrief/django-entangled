@@ -53,7 +53,7 @@ def gen_separate_fieldsets(form):
            fields_sets.append(_fieldsets[0])
         else:
            for _sub_fields in _fieldsets:
-               fields_sets .append(_sub_fields)
+               fields_sets.append(_sub_fields)
     if form._meta.untangled_fields != []:
         fields_sets += (tuple(( None, {"fields":tuple(form._meta.untangled_fields)})),)
     fields_sets += (tuple(( None, {"fields":list(form._meta.entangled_fields.keys())})),)
