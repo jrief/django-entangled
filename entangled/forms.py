@@ -2,8 +2,9 @@ import re
 from copy import deepcopy
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
-from django.forms.models import ModelChoiceField, ModelMultipleChoiceField, ModelFormMetaclass, ModelForm
 from django.forms.fields import Field
+from django.forms.forms import BaseForm, DeclarativeFieldsMetaclass
+from django.forms.models import ModelChoiceField, ModelMultipleChoiceField, ModelFormMetaclass, ModelForm
 from django.forms.widgets import Widget
 from django.db.models import Model
 from django.db.models.query import QuerySet
@@ -31,7 +32,15 @@ class EntangledField(Field):
         super().__init__(required=required, *args, **kwargs)
 
 
-class EntangledFormMetaclass(ModelFormMetaclass):
+class EnatngledFormMetaclass(DeclarativeFieldsMetaclass):
+    pass
+
+
+class EntangledForm(BaseForm, metaclass=EnatngledFormMetaclass):
+    pass
+
+
+class EntangledModelFormMetaclass(ModelFormMetaclass):
     def __new__(cls, class_name, bases, attrs):
         def formfield_callback(modelfield, **kwargs):
             if modelfield.name in entangled_fields.keys():
@@ -74,7 +83,7 @@ class EntangledFormMetaclass(ModelFormMetaclass):
         return new_class
 
 
-class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
+class EntangledModelFormMixin(metaclass=EntangledModelFormMetaclass):
     def __init__(self, *args, **kwargs):
         opts = self._meta
         if 'instance' in kwargs and kwargs['instance']:
@@ -130,27 +139,3 @@ class EntangledModelForm(EntangledModelFormMixin, ModelForm):
     """
     A convenience class to create entangled model forms.
     """
-
-
-def get_related_object(scope, field_name):
-    """
-    Returns the related field, referenced by the content of a ModelChoiceField.
-    """
-    try:
-        Model = apps.get_model(scope[field_name]['model'])
-        relobj = Model.objects.get(pk=scope[field_name]['pk'])
-    except (KeyError, ObjectDoesNotExist, TypeError):
-        relobj = None
-    return relobj
-
-
-def get_related_queryset(scope, field_name):
-    """
-    Returns the related queryset, referenced by the content of a ModelChoiceField.
-    """
-    try:
-        Model = apps.get_model(scope[field_name]['model'])
-        queryset = Model.objects.filter(pk__in=scope[field_name]['p_keys'])
-    except (KeyError, TypeError):
-        queryset = None
-    return queryset
