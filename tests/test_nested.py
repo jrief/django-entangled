@@ -9,7 +9,7 @@ from .models import Product
 
 @pytest.fixture(autouse=True)
 def product():
-    Product.objects.create(identifier='Primary')
+    Product.objects.create(name='Primary')
     return Product.objects.first()
 
 
@@ -27,3 +27,10 @@ class ProductForm(EntangledModelForm):
     class Meta:
         model = Product
         entangled_fields = {'properties': ['flat', 'nested']}
+
+
+@pytest.mark.django_db
+def test_unbound_form():
+    product_form = ProductForm()
+    assert product_form.is_bound is False
+    print(product_form.as_ul())

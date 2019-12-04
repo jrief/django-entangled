@@ -2,42 +2,24 @@ import re
 from copy import deepcopy
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
-from django.forms.fields import Field
 from django.forms.forms import BaseForm, DeclarativeFieldsMetaclass
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField, ModelFormMetaclass, ModelForm
-from django.forms.widgets import Widget
 from django.db.models import Model
 from django.db.models.query import QuerySet
 
-
-class InvisibleWidget(Widget):
-    @property
-    def is_hidden(self):
-        return True
-
-    def value_omitted_from_data(self, data, files, name):
-        return False
-
-    def render(self, name, value, attrs=None, renderer=None):
-        return ''
+from entangled.fields import EntangledInvisibleField, EntangledFormField
 
 
-class EntangledField(Field):
-    """
-    A pseudo field, which can be used to mimic a field value, which actually is not rendered inside the form.
-    """
-    widget = InvisibleWidget
-
-    def __init__(self, required=False, *args, **kwargs):
-        super().__init__(required=required, *args, **kwargs)
+class EntangledFormMetaclass(DeclarativeFieldsMetaclass):
+    def __new__(cls, name, bases, attrs):
+        new_cls = super().__new__(cls, name, bases, attrs)
+        return new_cls
 
 
-class EnatngledFormMetaclass(DeclarativeFieldsMetaclass):
-    pass
-
-
-class EntangledForm(BaseForm, metaclass=EnatngledFormMetaclass):
-    pass
+class EntangledForm(BaseForm, metaclass=EntangledFormMetaclass):
+    def add_prefix(self, field_name):
+        assert self.prefix, "EntangledForm.prefix must be set."
+        return '{}.{}'.format(self.prefix, field_name)
 
 
 class EntangledModelFormMetaclass(ModelFormMetaclass):
@@ -48,7 +30,7 @@ class EntangledModelFormMetaclass(ModelFormMetaclass):
                 # that we just check if "json" is part of the formfield's classname.
                 assert re.search('json', modelfield.formfield().__class__.__name__, re.IGNORECASE), \
                     "Field `{}.{}` doesn't seem to be JSON serializable.".format(class_name, modelfield.name)
-                return EntangledField(show_hidden_initial=False)
+                return EntangledInvisibleField(show_hidden_initial=False)
             return modelfield.formfield(**kwargs)
 
         if 'Meta' in attrs:
@@ -108,6 +90,14 @@ class EntangledModelFormMixin(metaclass=EntangledModelFormMetaclass):
                             initial[af] = reference[af]
             kwargs.setdefault('initial', initial)
         super().__init__(*args, **kwargs)
+
+    def _html_output(self, **kwargs):
+        for name, field in self.fields.items():
+            if isinstance(field, EntangledFormField):
+                # remember the attributes for rendering inside the EntangledFormField,
+                # so that they may be consumed by its own as_widget()-method.
+                field._html_output_kwargs = dict(**kwargs)
+        return super()._html_output(**kwargs)
 
     def _clean_form(self):
         opts = self._meta
