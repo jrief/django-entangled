@@ -139,7 +139,7 @@ def get_related_object(scope, field_name):
     try:
         Model = apps.get_model(scope[field_name]['model'])
         relobj = Model.objects.get(pk=scope[field_name]['pk'])
-    except (KeyError, LookupError, ObjectDoesNotExist, TypeError):
+    except:
         relobj = None
     return relobj
 
