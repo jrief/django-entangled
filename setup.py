@@ -33,6 +33,9 @@ setup(
     author_email='jacob.rief@gmail.com',
     url='https://github.com/jrief/django-entangled',
     packages=find_packages(),
+    install_requires=[
+        'django>=1.11',
+    ],
     license='MIT',
     platforms=['OS Independent'],
     keywords=['Django Forms', 'JSON'],
