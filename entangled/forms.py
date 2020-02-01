@@ -19,7 +19,7 @@ class EntangledFormMetaclass(DeclarativeFieldsMetaclass):
 class EntangledForm(BaseForm, metaclass=EntangledFormMetaclass):
     def add_prefix(self, field_name):
         assert self.prefix, "EntangledForm.prefix must be set."
-        return '{}.{}'.format(self.prefix, field_name)
+        return '{0}.{1}'.format(self.prefix, field_name)
 
 
 class EntangledModelFormMetaclass(ModelFormMetaclass):
@@ -68,6 +68,9 @@ class EntangledModelFormMetaclass(ModelFormMetaclass):
 class EntangledModelFormMixin(metaclass=EntangledModelFormMetaclass):
     def __init__(self, *args, **kwargs):
         opts = self._meta
+        for name, field in self.base_fields.items():
+            if isinstance(field, EntangledFormField):
+                field.widget._entangled_form.prefix = name
         if 'instance' in kwargs and kwargs['instance']:
             initial = kwargs['initial'] if 'initial' in kwargs else {}
             for field_name, assigned_fields in opts.entangled_fields.items():
@@ -94,9 +97,9 @@ class EntangledModelFormMixin(metaclass=EntangledModelFormMetaclass):
     def _html_output(self, **kwargs):
         for name, field in self.fields.items():
             if isinstance(field, EntangledFormField):
-                # remember the attributes for rendering inside the EntangledFormField,
-                # so that they may be consumed by its own as_widget()-method.
-                field._html_output_kwargs = dict(**kwargs)
+                # remember the attributes for rendering the field inside its EntangledFormWidget,
+                # so that they may be consumed by their own render()-method.
+                field.widget._html_field_kwargs = dict(**kwargs)
         return super()._html_output(**kwargs)
 
     def _clean_form(self):
