@@ -1,9 +1,12 @@
 import re
+from collections import OrderedDict
 from copy import deepcopy
+
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms.forms import BaseForm, DeclarativeFieldsMetaclass
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField, ModelFormMetaclass, ModelForm
+from django.forms.utils import pretty_name
 from django.db.models import Model
 from django.db.models.query import QuerySet
 
@@ -53,6 +56,8 @@ class EntangledModelFormMetaclass(ModelFormMetaclass):
                      "Field {} listed in `{}.Meta.entangled_fields['{}']` is missing in Form declaration".format(
                         field_name, class_name, modelfield_name)
 
+        new_class.base_fields = cls.flatten(new_class.base_fields)
+
         # merge untangled and entangled fields from base classes
         for base in bases:
             if hasattr(base, '_meta'):
@@ -63,6 +68,23 @@ class EntangledModelFormMetaclass(ModelFormMetaclass):
         new_class._meta.entangled_fields = entangled_fields
         new_class._meta.untangled_fields = untangled_fields
         return new_class
+
+    @classmethod
+    def flatten(cls, fields):
+        """
+        Return a dictionary of fields, with all nested fields flattened.
+        """
+        flat = OrderedDict()
+        for name, field in fields.items():
+            if isinstance(field, EntangledFormField):
+                nested_fields = cls.flatten(field._entangled_form.fields)
+                for nested_name, nested_field in nested_fields.items():
+                    if nested_field.label is None:
+                        nested_field.label = pretty_name(nested_name)
+                    flat.update({'{0}.{1}'.format(name, nested_name): nested_field})
+            else:
+                flat.update({name: field})
+        return flat
 
 
 class EntangledModelFormMixin(metaclass=EntangledModelFormMetaclass):
@@ -94,37 +116,40 @@ class EntangledModelFormMixin(metaclass=EntangledModelFormMetaclass):
             kwargs.setdefault('initial', initial)
         super().__init__(*args, **kwargs)
 
-    def _html_output(self, **kwargs):
-        for name, field in self.fields.items():
-            if isinstance(field, EntangledFormField):
-                # remember the attributes for rendering the field inside its EntangledFormWidget,
-                # so that they may be consumed by their own render()-method.
-                field.widget._html_field_kwargs = dict(**kwargs)
-        return super()._html_output(**kwargs)
-
     def _clean_form(self):
         opts = self._meta
         super()._clean_form()
         cleaned_data = {f: self.cleaned_data[f] for f in opts.untangled_fields if f in self.cleaned_data}
+        base_fields_keys = [k.split('.') for k in self.base_fields.keys()]
         for field_name, assigned_fields in opts.entangled_fields.items():
             cleaned_data[field_name] = {}
             for af in assigned_fields:
-                if af not in self.cleaned_data:
-                    continue
-                if isinstance(self.base_fields[af], ModelMultipleChoiceField) and isinstance(self.cleaned_data[af], QuerySet):
-                    opts = self.cleaned_data[af].model._meta
-                    cleaned_data[field_name][af] = {
-                        'model': '{}.{}'.format(opts.app_label, opts.model_name),
-                        'p_keys': list(self.cleaned_data[af].values_list('pk', flat=True)),
-                    }
-                elif isinstance(self.base_fields[af], ModelChoiceField) and isinstance(self.cleaned_data[af], Model):
-                    opts = self.cleaned_data[af]._meta
-                    cleaned_data[field_name][af] = {
-                        'model': '{}.{}'.format(opts.app_label, opts.model_name),
-                        'pk': self.cleaned_data[af].pk,
-                    }
-                else:
-                    cleaned_data[field_name][af] = self.cleaned_data[af]
+                for bfks in base_fields_keys:
+                    if bfks[0] != af:
+                        continue
+                    bfk = '.'.join(bfks)
+                    if bfk not in self.cleaned_data:
+                        break
+                    if isinstance(self.base_fields[bfk], ModelMultipleChoiceField) and isinstance(self.cleaned_data[bfk], QuerySet):
+                        opts = self.cleaned_data[bfk].model._meta
+                        value = {
+                            'model': '{}.{}'.format(opts.app_label, opts.model_name),
+                            'p_keys': list(self.cleaned_data[bfk].values_list('pk', flat=True)),
+                        }
+                    elif isinstance(self.base_fields[bfk], ModelChoiceField) and isinstance(self.cleaned_data[bfk], Model):
+                        opts = self.cleaned_data[bfk]._meta
+                        value = {
+                            'model': '{}.{}'.format(opts.app_label, opts.model_name),
+                            'pk': self.cleaned_data[bfk].pk,
+                        }
+                    else:
+                        value = self.cleaned_data[bfk]
+                    partial_cleaned_data = cleaned_data[field_name]
+                    for key in bfks[:-1]:
+                        partial_cleaned_data.setdefault(key, {})
+                        partial_cleaned_data = partial_cleaned_data[key]
+                    key = bfks[-1]
+                    partial_cleaned_data[key] = value
         self.cleaned_data = cleaned_data
 
 

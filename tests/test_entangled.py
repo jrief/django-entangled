@@ -31,10 +31,24 @@ def categories():
 
 class ProductForm(EntangledModelForm):
     name = fields.CharField()
+
     active = fields.BooleanField()
-    tenant = ModelChoiceField(queryset=get_user_model().objects.all(), empty_label=None)
-    description = fields.CharField(required=False, widget=widgets.Textarea)
-    categories = ModelMultipleChoiceField(queryset=Category.objects.all(), required=False)
+
+    tenant = ModelChoiceField(
+        queryset=get_user_model().objects.all(),
+        empty_label=None,
+    )
+
+    description = fields.CharField(
+        required=False,
+        widget=widgets.Textarea,
+    )
+
+    categories = ModelMultipleChoiceField(
+        queryset=Category.objects.all(),
+        required=False,
+    )
+
     field_order = ['active', 'name', 'tenant', 'description', 'categories']
 
     class Meta:
