@@ -1,4 +1,3 @@
-import re
 from collections import OrderedDict
 from copy import deepcopy
 
@@ -28,9 +27,12 @@ class EntangledForm(BaseForm, metaclass=EntangledFormMetaclass):
 class EntangledModelFormMetaclass(ModelFormMetaclass):
     def __new__(cls, class_name, bases, attrs):
         def formfield_callback(modelfield, **kwargs):
+            import re
+
             if modelfield.name in entangled_fields.keys():
                 # there are so many different implementations for JSON fields,
                 # that we just check if "json" is part of the formfield's classname.
+                # TODO: In Django-3.1 we can test against django.db.models.JSONField
                 assert re.search('json', modelfield.formfield().__class__.__name__, re.IGNORECASE), \
                     "Field `{}.{}` doesn't seem to be JSON serializable.".format(class_name, modelfield.name)
                 return EntangledInvisibleField(show_hidden_initial=False)

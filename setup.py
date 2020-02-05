@@ -34,7 +34,7 @@ setup(
     url='https://github.com/jrief/django-entangled',
     packages=find_packages(),
     install_requires=[
-        'django>=1.11',
+        'Django>=1.11',
     ],
     license='MIT',
     platforms=['OS Independent'],

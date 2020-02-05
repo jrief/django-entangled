@@ -1,5 +1,10 @@
+from django import VERSION as DJANGO_VERSION
 from django.db import models
-from jsonfield import JSONField
+
+if DJANGO_VERSION < (3, 1):
+    from jsonfield import JSONField
+else:
+    from django.db.models import JSONField
 
 
 class Category(models.Model):
