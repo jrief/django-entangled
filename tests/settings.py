@@ -1,3 +1,4 @@
+from django import VERSION as DJANGO_VERSION
 SECRET_KEY = 'test'
 
 SITE_ID = 1
@@ -44,7 +45,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.admin',
     'django.contrib.staticfiles',
-    'jsonfield',
     'entangled',
     'tests',
 ]
+
+if DJANGO_VERSION < (3, 1):
+    INSTALLED_APPS.append('jsonfield')
