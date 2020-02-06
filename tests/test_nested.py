@@ -17,7 +17,7 @@ def product():
 
 
 class InternalForm(EntangledForm):
-    price = fields.DecimalField()
+    price = fields.DecimalField(max_digits=6, decimal_places=2)
 
 
 class DescriptionForm(EntangledForm):
@@ -47,7 +47,7 @@ def test_unbound_form():
         <li><label for="id_active">Active:</label> <input type="checkbox" name="active" id="id_active"></li>
         <li><label for="id_nested.product_code">Product code:</label> <input type="number" name="nested.product_code" required id="id_nested.product_code"></li>
         <li><label for="id_nested.product_name">Product name:</label> <input type="text" name="nested.product_name" required id="id_nested.product_name"></li>
-        <li><label for="id_nested.internal.price">Price:</label> <input type="number" name="nested.internal.price" step="any" required id="id_nested.internal.price"></li>""",
+        <li><label for="id_nested.internal.price">Price:</label> <input type="number" name="nested.internal.price" step="0.01" required id="id_nested.internal.price"></li>""",
         features='lxml')
     assert BeautifulSoup(product_form.as_ul(), features='lxml') == expected
 

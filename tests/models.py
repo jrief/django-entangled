@@ -1,5 +1,7 @@
 from django import VERSION as DJANGO_VERSION
 from django.db import models
+from django.core.serializers.json import DjangoJSONEncoder
+
 
 if DJANGO_VERSION < (3, 1):
     from jsonfield import JSONField
@@ -23,4 +25,6 @@ class Product(models.Model):
         null=True,
     )
 
-    properties = JSONField()
+    properties = JSONField(
+        encoder=DjangoJSONEncoder,
+    )
