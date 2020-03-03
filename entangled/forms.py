@@ -101,13 +101,13 @@ class EntangledModelFormMixin(metaclass=EntangledModelFormMetaclass):
                 reference = getattr(kwargs['instance'], field_name)
                 for af in assigned_fields:
                     if af in reference:
-                        if isinstance(self.base_fields[af], ModelMultipleChoiceField):
+                        if isinstance(self.declared_fields[af], ModelMultipleChoiceField):
                             try:
                                 Model = apps.get_model(reference[af]['model'])
                                 initial[af] = Model.objects.filter(pk__in=reference[af]['p_keys'])
                             except (KeyError, TypeError):
                                 pass
-                        elif isinstance(self.base_fields[af], ModelChoiceField):
+                        elif isinstance(self.declared_fields[af], ModelChoiceField):
                             try:
                                 Model = apps.get_model(reference[af]['model'])
                                 initial[af] = Model.objects.get(pk=reference[af]['pk'])
