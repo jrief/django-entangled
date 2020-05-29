@@ -18,9 +18,11 @@ For other database implementations, there are plenty of alternatives.
 When creating a form from a model, the input field associated with a JSON field, typically is a `<textarea ...></textarea>`.
 This textarea widget is very inpracticable for editing, because it just contains a textual representation of that
 object notation. One possibility is to use a generic [JSON editor](https://github.com/josdejong/jsoneditor),
-which with some JavaScript, transforms the widget into an attribute-value-pair editor. This approach however prevents
-us from utilizing all the nice features provided by the Django form framework, such as field validation, normalization
-of data and the usage of foreign keys. By using **django-entangled**, one can use a Django `ModelForm`, and store all,
+which with some JavaScript, transforms the widget into an attribute-value-pair editor. This approach however requires
+to manage the field keys ourself. It furthermore prevents us from utilizing all the nice features provided by the Django
+form framework, such as field validation, normalization of data and the usage of foreign keys.
+
+By using **django-entangled**, one can use a Django `ModelForm`, and store all,
 or a subset of that form fields in one or more JSON fields inside of the associated model.
 
 
