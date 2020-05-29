@@ -132,7 +132,7 @@ rather than digging through data.
 
 Foreign keys are stored as `"fieldname": {"model": "appname.modelname", "pk": 1234}` in our JSON field, meaning that
 we have no database constraints. If a target object is deleted, that foreign key points to nowhere. Therefore always
-keep in mind, that we don't have any referential integrity and hence must writing our code in a defensive manner.
+keep in mind, that we don't have any referential integrity and hence must write our code in a defensive manner.
 
 
 ## Changes
