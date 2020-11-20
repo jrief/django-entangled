@@ -8,7 +8,7 @@ with open('README.md') as fh:
 
 
 CLASSIFIERS = [
-    'Development Status :: 4 - Beta',
+    'Development Status :: 5 - Production/Stable',
     'Environment :: Web Environment',
     'Framework :: Django',
     'Intended Audience :: Developers',
@@ -16,13 +16,13 @@ CLASSIFIERS = [
     'Operating System :: OS Independent',
     'Programming Language :: Python',
     'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
-    'Programming Language :: Python :: 3.5',
     'Programming Language :: Python :: 3.6',
     'Programming Language :: Python :: 3.7',
-    'Framework :: Django :: 1.11',
-    'Framework :: Django :: 2.0',
+    'Programming Language :: Python :: 3.8',
     'Framework :: Django :: 2.1',
     'Framework :: Django :: 2.2',
+    'Framework :: Django :: 3.0',
+    'Framework :: Django :: 3.1',
 ]
 
 setup(
@@ -34,7 +34,7 @@ setup(
     url='https://github.com/jrief/django-entangled',
     packages=find_packages(),
     install_requires=[
-        'django>=1.11',
+        'django>=2.1',
     ],
     license='MIT',
     platforms=['OS Independent'],
