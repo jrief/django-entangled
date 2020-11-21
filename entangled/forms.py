@@ -72,8 +72,8 @@ class EntangledFormMetaclass(ModelFormMetaclass):
                 for key, fields in getattr(base._meta, 'entangled_fields', {}).items():
                     entangled_fields.setdefault(key, [])
                     entangled_fields[key].extend(fields)
-        for ed in entangled_fields.values():
-            for ef in ed:
+        for entangled_list in entangled_fields.values():
+            for ef in entangled_list:
                 if ef not in retangled_fields:
                     retangled_fields[ef] = ef
         new_class._meta.entangled_fields = entangled_fields
@@ -88,23 +88,27 @@ class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
         if 'instance' in kwargs and kwargs['instance']:
             initial = kwargs['initial'] if 'initial' in kwargs else {}
             for field_name, assigned_fields in opts.entangled_fields.items():
-                reference = getattr(kwargs['instance'], field_name)
                 for af in assigned_fields:
-                    if af in reference:
-                        if isinstance(self.base_fields[af], ModelMultipleChoiceField):
-                            try:
-                                Model = apps.get_model(reference[af]['model'])
-                                initial[af] = Model.objects.filter(pk__in=reference[af]['p_keys'])
-                            except (KeyError, TypeError):
-                                pass
-                        elif isinstance(self.base_fields[af], ModelChoiceField):
-                            try:
-                                Model = apps.get_model(reference[af]['model'])
-                                initial[af] = Model.objects.get(pk=reference[af]['pk'])
-                            except (KeyError, ObjectDoesNotExist, TypeError):
-                                pass
-                        else:
-                            initial[af] = reference[af]
+                    reference = getattr(kwargs['instance'], field_name)
+                    try:
+                        for part in opts.retangled_fields[af].split('.'):
+                            reference = reference[part]
+                    except KeyError:
+                        continue
+                    if isinstance(self.base_fields[af], ModelMultipleChoiceField):
+                        try:
+                            Model = apps.get_model(reference['model'])
+                            initial[af] = Model.objects.filter(pk__in=reference['p_keys'])
+                        except (KeyError, TypeError):
+                            pass
+                    elif isinstance(self.base_fields[af], ModelChoiceField):
+                        try:
+                            Model = apps.get_model(reference['model'])
+                            initial[af] = Model.objects.get(pk=reference['pk'])
+                        except (KeyError, ObjectDoesNotExist, TypeError):
+                            pass
+                    else:
+                        initial[af] = reference
             kwargs.setdefault('initial', initial)
         super().__init__(*args, **kwargs)
 
@@ -117,20 +121,26 @@ class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
             for af in assigned_fields:
                 if af not in self.cleaned_data:
                     continue
+                bucket = cleaned_data[field_name]
+                af_parts = opts.retangled_fields[af].split('.')
+                for part in af_parts[:-1]:
+                    bucket = bucket.setdefault(part, {})
+                part = af_parts[-1]
                 if isinstance(self.base_fields[af], ModelMultipleChoiceField) and isinstance(self.cleaned_data[af], QuerySet):
-                    opts = self.cleaned_data[af].model._meta
-                    cleaned_data[field_name][af] = {
-                        'model': '{}.{}'.format(opts.app_label, opts.model_name),
+                    meta = self.cleaned_data[af].model._meta
+                    value = {
+                        'model': '{}.{}'.format(meta.app_label, meta.model_name),
                         'p_keys': list(self.cleaned_data[af].values_list('pk', flat=True)),
                     }
                 elif isinstance(self.base_fields[af], ModelChoiceField) and isinstance(self.cleaned_data[af], Model):
-                    opts = self.cleaned_data[af]._meta
-                    cleaned_data[field_name][af] = {
-                        'model': '{}.{}'.format(opts.app_label, opts.model_name),
+                    meta = self.cleaned_data[af]._meta
+                    value = {
+                        'model': '{}.{}'.format(meta.app_label, meta.model_name),
                         'pk': self.cleaned_data[af].pk,
                     }
                 else:
-                    cleaned_data[field_name][af] = self.cleaned_data[af]
+                    value = self.cleaned_data[af]
+                bucket[part] = value
         self.cleaned_data = cleaned_data
 
 

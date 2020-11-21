@@ -35,7 +35,6 @@ class SortedProductForm(ProductForm):
 
     class Meta:
         model = Product
-        untangled_fields = ['name']
         entangled_fields = {'properties': ['active', 'description']}
 
 
@@ -57,7 +56,6 @@ class UnsortedBookForm(ProductForm):
 
     class Meta:
         model = Product
-        untangled_fields = ['name']
         entangled_fields = {'properties': ['author']}
 
 
@@ -80,7 +78,6 @@ class SortedBookForm(ProductForm):
 
     class Meta:
         model = Product
-        untangled_fields = ['name']
         entangled_fields = {'properties': ['author']}
 
 
@@ -109,7 +106,6 @@ class QuantifiedUnsortedProductForm(QuantityMixin, ProductForm):
 
     class Meta:
         model = Product
-        untangled_fields = ['name']
         entangled_fields = {'properties': ['unit']}
 
 
@@ -133,7 +129,6 @@ class QuantifiedSortedProductForm(QuantityMixin, ProductForm):
 
     class Meta:
         model = Product
-        untangled_fields = ['name']
         entangled_fields = {'properties': ['unit']}
 
 
