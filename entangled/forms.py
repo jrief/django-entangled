@@ -1,5 +1,7 @@
-import re
 from copy import deepcopy
+from warnings import warn
+import re
+
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField, ModelFormMetaclass, ModelForm
@@ -45,8 +47,9 @@ class EntangledFormMetaclass(ModelFormMetaclass):
         if 'Meta' in attrs:
             untangled_fields = list(getattr(attrs['Meta'], 'untangled_fields', []))
             entangled_fields = deepcopy(getattr(attrs['Meta'], 'entangled_fields', {}))
+            retangled_fields = deepcopy(getattr(attrs['Meta'], 'retangled_fields', {}))
         else:
-            untangled_fields, entangled_fields = [], {}
+            untangled_fields, entangled_fields, retangled_fields = [], {}, {}
         if entangled_fields:
             fieldset = set(getattr(attrs['Meta'], 'fields', []))
             fieldset.update(untangled_fields)
@@ -69,8 +72,13 @@ class EntangledFormMetaclass(ModelFormMetaclass):
                 for key, fields in getattr(base._meta, 'entangled_fields', {}).items():
                     entangled_fields.setdefault(key, [])
                     entangled_fields[key].extend(fields)
+        for ed in entangled_fields.values():
+            for ef in ed:
+                if ef not in retangled_fields:
+                    retangled_fields[ef] = ef
         new_class._meta.entangled_fields = entangled_fields
         new_class._meta.untangled_fields = untangled_fields
+        new_class._meta.retangled_fields = retangled_fields
         return new_class
 
 
@@ -130,3 +138,16 @@ class EntangledModelForm(EntangledModelFormMixin, ModelForm):
     """
     A convenience class to create entangled model forms.
     """
+
+def get_related_object(scope, field_name):
+    from . import utils
+
+    warn("Please import 'get_related_object' from entangled.utils", DeprecationWarning)
+    return utils.get_related_object(scope, field_name)
+
+
+def get_related_queryset(scope, field_name):
+    from . import utils
+
+    warn("Please import 'get_related_queryset' from entangled.utils", DeprecationWarning)
+    return utils.get_related_queryset(scope, field_name)
