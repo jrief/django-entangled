@@ -4,7 +4,8 @@ from django import VERSION as DJANGO_VERSION
 from django.contrib.auth import get_user_model
 from django.forms import fields, widgets
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
-from entangled.forms import EntangledModelForm, get_related_object, get_related_queryset
+from entangled.forms import EntangledModelForm, get_related_object, get_related_queryset,\
+  gen_single_fieldsets, gen_separate_fieldsets
 from .models import Product, Category
 
 if DJANGO_VERSION < (2, 1):
@@ -39,7 +40,9 @@ class ProductForm(EntangledModelForm):
     class Meta:
         model = Product
         untangled_fields = ['name']
-        entangled_fields = {'properties': ['active', 'tenant', 'description', 'categories']}
+        # Test with nested lists and tulpes.
+        entangled_fields = {'properties': [['active', 'tenant'], ('description',), ['categories']]}
+        entangled_field_subsets=[(None, { 'classes':('custom_help',), "fields":entangled_fields['properties']})]
 
 
 @pytest.mark.django_db
@@ -157,7 +160,8 @@ def test_form_inheritance():
 
     product_form = HeavyProductForm()
     product_form._meta.untangled_fields == ['name']
-    product_form._meta.entangled_fields == {'properties': ['active', 'tenant', 'description', 'weight']}
+    # Test with nested tuples
+    product_form._meta.entangled_fields == {'properties': ('active', ('tenant', 'description',), 'weight',)}
     assert product_form.is_bound is False
     expected = BeautifulSoup("""
         <li><label for="id_name">Name:</label> <input type="text" name="name" required id="id_name"></li>
@@ -195,3 +199,17 @@ def test_get_related_queryset():
     assert issubclass(categories.model, Category)
     assert categories.count() == 2
     assert get_related_queryset(properties, 'xyz') is None
+
+
+@pytest.mark.django_db
+def test_form_fieldsets_separate():
+    product_form = ProductForm(data={})
+    assert product_form.is_bound
+    assert gen_separate_fieldsets(product_form) == [(None, {'classes':('custom_help',), "fields":[['active', 'tenant'], ('description',), ['categories']]}),(None, {'fields': ('name',)}),(None, { "fields":['properties']})]
+
+
+@pytest.mark.django_db
+def test_form_fieldsets_single():
+    product_form = ProductForm(data={})
+    assert product_form.is_bound
+    assert gen_single_fieldsets(product_form) == ((None, {"fields":(['active', 'tenant'], ('description',), ['categories'], ['name'], 'properties')}),)
