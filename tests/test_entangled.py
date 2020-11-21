@@ -5,8 +5,7 @@ from django.contrib.auth import get_user_model
 from django.forms import fields, widgets
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
 
-from entangled.forms import EntangledModelForm
-from entangled.utils import get_related_object, get_related_queryset
+from entangled.forms import EntangledModelForm, get_related_object, get_related_queryset
 from .models import Product, Category
 
 

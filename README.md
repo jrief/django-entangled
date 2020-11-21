@@ -137,6 +137,11 @@ keep in mind, that we don't have any referential integrity and hence must write 
 
 ## Changes
 
+- 0.3.1
+  * No functional changes.
+  * Add support for Django-3.1 and Python-3.8.
+  * Drop support for Django<2.1 and Python-3.5.
+
 - 0.3
   * Add support for `ModelMultipleChoiceField`.
   * Fix: Make a deep copy of `entangled_fields` and `untangled_fields` before merging.
