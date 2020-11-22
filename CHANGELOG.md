@@ -2,6 +2,8 @@
 
 - 0.4
   * Allow nested structures for stored JSON data.
+  * Functions `get_related_object` and `get_related_queryset` have been moved from module
+    `entangled.forms` into module `entangled.utils`.
 
 - 0.3
   * Add support for `ModelMultipleChoiceField`.

@@ -169,6 +169,18 @@ def test_get_related_object():
 
 
 @pytest.mark.django_db
+def test_get_related_object_deprecated():
+    from entangled.forms import get_related_object
+
+    properties = {
+        'tenant': {'model': 'auth.user', 'pk': 2},
+    }
+    with pytest.deprecated_call():
+        tenant = get_related_object(properties, 'tenant')
+        assert isinstance(tenant, get_user_model())
+
+
+@pytest.mark.django_db
 def test_get_related_queryset():
     properties = {
         'categories': {'model': 'tests.category', 'p_keys': [1, 2]},
@@ -177,3 +189,16 @@ def test_get_related_queryset():
     assert issubclass(categories.model, Category)
     assert categories.count() == 2
     assert get_related_queryset(properties, 'xyz') is None
+
+
+@pytest.mark.django_db
+def test_get_related_queryset_deprecated():
+    from entangled.forms import get_related_queryset
+
+    properties = {
+        'categories': {'model': 'tests.category', 'p_keys': [1, 2]},
+    }
+    with pytest.deprecated_call():
+        categories = get_related_queryset(properties, 'categories')
+        assert issubclass(categories.model, Category)
+        assert categories.count() == 2

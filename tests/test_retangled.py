@@ -28,7 +28,7 @@ class ProductForm(EntangledModelForm):
         untangled_fields = ['name']
         entangled_fields = {'properties': ['tenant', 'active', 'color', 'size', 'categories']}
         retangled_fields = {'color': 'extra.variants.color', 'size': 'extra.variants.size',
-                            'tenant': 'extra.tenant', 'categories': 'extra.categories'}
+                            'tenant': 'ownership.tenant', 'categories': 'extra.categories'}
 
 
 @pytest.mark.django_db
@@ -64,11 +64,10 @@ def test_bound_form():
     assert product_form.is_valid()
     instance = product_form.save()
     extra = {
-        'tenant': {'model': 'auth.user', 'pk': data.pop('tenant')},
         'categories': {'model': 'tests.category', 'p_keys': data.pop('categories')},
         'variants': {k: data.pop(k) for k in ['color', 'size']},
     }
-    expected = dict(data, extra=extra)
+    expected = dict(data, extra=extra, ownership={'tenant': {'model': 'auth.user', 'pk': data.pop('tenant')}})
     assert instance.name == expected.pop('name')
     assert instance.properties == expected
 
@@ -82,9 +81,11 @@ def test_instance_form():
                 'color': 'silver',
                 'size': 's',
             },
-            'tenant': {'model': 'auth.user', 'pk': 1},
             'categories': {'model': 'tests.category', 'p_keys': [1, 2]},
-        }
+        },
+        'ownership': {
+            'tenant': {'model': 'auth.user', 'pk': 1},
+        },
     }
     instance = Product.objects.create(name="Grater", properties=properties)
     product_form = ProductForm(instance=instance)
