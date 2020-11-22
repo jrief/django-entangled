@@ -5,6 +5,11 @@
   * Functions `get_related_object` and `get_related_queryset` have been moved from module
     `entangled.forms` into module `entangled.utils`.
 
+- 0.3.1
+  * No functional changes.
+  * Add support for Django-3.1 and Python-3.8.
+  * Drop support for Django<2.1 and Python-3.5.
+
 - 0.3
   * Add support for `ModelMultipleChoiceField`.
   * Fix: Make a deep copy of `entangled_fields` and `untangled_fields` before merging.
