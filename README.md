@@ -3,7 +3,7 @@
 Edit JSON-Model Fields using a Standard Django Form.
 
 [![Build Status](https://travis-ci.org/jrief/django-entangled.svg?branch=master)](https://travis-ci.org/jrief/django-entangled)
-[![Coverage](https://codecov.io/gh/jrief/django-entangled/branch/master/graph/badge.svg)]()
+[![Coverage](https://codecov.io/github/jrief/django-entangled/coverage.svg?branch=master)](https://codecov.io/github/jrief/django-entangled?branch=master)
 [![PyPI](https://img.shields.io/pypi/pyversions/django-entangled.svg)]()
 [![PyPI version](https://img.shields.io/pypi/v/django-entangled.svg)](https://https://pypi.python.org/pypi/django-entangled)
 [![PyPI](https://img.shields.io/pypi/l/django-entangled.svg)]()
@@ -175,11 +175,12 @@ class ClothingProductForm(BaseProductForm):
 
 By adding a name mapping from our existing field names, we can group the fields `color` and `size`
 into a sub-dictionary named `variants` inside our `properties` fields. Such a field mapping is
-declared through the special dictionary `retangled_fields` added to the Meta-options of our Model
-Form. All entries are optional; if a field name is missing, it just maps to itself.
+declared through the optional Meta-option `retangled_fields`. In this dictionary, all entries are
+optional; if a field name is missing, it just maps to itself.
 
-This mapping table can also be used to map field names, which can by handy to map fields containg
-an underscore into field-names containing a dash. 
+This mapping table can also be used to map field names to other keys inside the resulting JSON
+datastructure. This for instance is handy to map fields containg an underscore into field-names
+containing instead a dash. 
 
 
 ## Caveats
