@@ -18,9 +18,11 @@ For other database implementations, there are plenty of alternatives.
 When creating a form from a model, the input field associated with a JSON field, typically is a `<textarea ...></textarea>`.
 This textarea widget is very inpracticable for editing, because it just contains a textual representation of that
 object notation. One possibility is to use a generic [JSON editor](https://github.com/josdejong/jsoneditor),
-which with some JavaScript, transforms the widget into an attribute-value-pair editor. This approach however prevents
-us from utilizing all the nice features provided by the Django form framework, such as field validation, normalization
-of data and the usage of foreign keys. By using **django-entangled**, one can use a Django `ModelForm`, and store all,
+which with some JavaScript, transforms the widget into an attribute-value-pair editor. This approach however requires
+to manage the field keys ourself. It furthermore prevents us from utilizing all the nice features provided by the Django
+form framework, such as field validation, normalization of data and the usage of foreign keys.
+
+By using **django-entangled**, one can use a Django `ModelForm`, and store all,
 or a subset of that form fields in one or more JSON fields inside of the associated model.
 
 
@@ -130,10 +132,15 @@ rather than digging through data.
 
 Foreign keys are stored as `"fieldname": {"model": "appname.modelname", "pk": 1234}` in our JSON field, meaning that
 we have no database constraints. If a target object is deleted, that foreign key points to nowhere. Therefore always
-keep in mind, that we don't have any referential integrity and hence must writing our code in a defensive manner.
+keep in mind, that we don't have any referential integrity and hence must write our code in a defensive manner.
 
 
 ## Changes
+
+- 0.3.1
+  * No functional changes.
+  * Add support for Django-3.1 and Python-3.8.
+  * Drop support for Django<2.1 and Python-3.5.
 
 - 0.3
   * Add support for `ModelMultipleChoiceField`.
