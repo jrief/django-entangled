@@ -62,8 +62,8 @@ class EntangledFormMetaclass(ModelFormMetaclass):
         for modelfield_name in entangled_fields.keys():
             for field_name in entangled_fields[modelfield_name]:
                 assert field_name in new_class.base_fields, \
-                     "Field {} listed in `{}.Meta.entangled_fields['{}']` is missing in Form declaration".format(
-                        field_name, class_name, modelfield_name)
+                    "Field {} listed in `{}.Meta.entangled_fields['{}']` is missing in Form declaration" \
+                    .format(field_name, class_name, modelfield_name)
 
         # merge untangled and entangled fields from base classes
         for base in bases:
