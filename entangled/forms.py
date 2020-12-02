@@ -126,7 +126,8 @@ class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
                 for part in af_parts[:-1]:
                     bucket = bucket.setdefault(part, {})
                 part = af_parts[-1]
-                if isinstance(self.base_fields[af], ModelMultipleChoiceField) and isinstance(self.cleaned_data[af], QuerySet):
+                if isinstance(self.base_fields[af], ModelMultipleChoiceField) and \
+                        isinstance(self.cleaned_data[af], QuerySet):
                     meta = self.cleaned_data[af].model._meta
                     value = {
                         'model': '{}.{}'.format(meta.app_label, meta.model_name),
