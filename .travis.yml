@@ -14,7 +14,7 @@ env:
   - DJANGOVER=django31
 
 install:
-  - pip install tox
+  - pip install tox coverage
 
 script:
   - "if [[ $TRAVIS_PYTHON_VERSION == '3.5' && $DJANGOVER ]]; then export TOX_ENV=py35-$DJANGOVER; fi"
@@ -22,3 +22,6 @@ script:
   - "if [[ $TRAVIS_PYTHON_VERSION == '3.7' && $DJANGOVER ]]; then export TOX_ENV=py37-$DJANGOVER; fi"
   - "if [[ $TRAVIS_PYTHON_VERSION == '3.8' && $DJANGOVER ]]; then export TOX_ENV=py38-$DJANGOVER; fi"
   - tox -r -e "$TOX_ENV"
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

@@ -3,6 +3,7 @@
 Edit JSON-Model Fields using a Standard Django Form.
 
 [![Build Status](https://travis-ci.org/jrief/django-entangled.svg?branch=master)](https://travis-ci.org/jrief/django-entangled)
+[![Coverage](https://codecov.io/github/jrief/django-entangled/coverage.svg?branch=master)](https://codecov.io/github/jrief/django-entangled?branch=master)
 [![PyPI](https://img.shields.io/pypi/pyversions/django-entangled.svg)]()
 [![PyPI version](https://img.shields.io/pypi/v/django-entangled.svg)](https://https://pypi.python.org/pypi/django-entangled)
 [![PyPI](https://img.shields.io/pypi/l/django-entangled.svg)]()
@@ -124,6 +125,64 @@ we have to declare it explicitly using the `form`-attribute. This is the only ch
 order to store arbitrary content inside our JSON model-fields.
 
 
+## Nested Data Structures
+
+Sometimes it can be desirable to store the data in a nested hierarchie of dictionaries, rather than having all
+attribute-value-pairs in the first level of our JSON field. This can for instance be handy when merging more than one
+form, all themselves ineriting from `EntangledModelFormMixin`.
+
+Say that we have different types of products, all of which share the same base product form:
+
+```python
+from django.contrib.auth import get_user_model
+from django.forms import models
+from entangled.forms import EntangledModelFormMixin
+from .models import Product
+
+class BaseProductForm(EntangledModelFormMixin):
+    tenant = models.ModelChoiceField(
+        queryset=get_user_model().objects.filter(is_staff=True),
+    )
+
+    class Meta:
+        model = Product
+        entangled_fields = {'properties': ['tenant']}
+        untangled_fields = ['name', 'price']
+```
+
+In order to specialize our base product towards, say clothing, we typically would inherit from the base form
+and add some additional fields, here `color` and `size`:
+
+```python
+from django.forms import fields
+from .forms import BaseProductForm
+from .models import Product
+
+class ClothingProductForm(BaseProductForm):
+    color = fields.RegexField(
+        regex=r'^#[0-9a-f]{6}$',
+    )
+
+    size = fields.ChoiceField(
+        choices=[('s', "small"), ('m', "medium"), ('l', "large"), ('xl', "extra large")],
+    )
+
+    class Meta:
+        model = Product
+        entangled_fields = {'properties': ['color', 'size']}
+        retangled_fields = {'color': 'variants.color', 'size': 'variants.size'}
+```
+
+By adding a name mapping from our existing field names, we can group the fields `color` and `size`
+into a sub-dictionary named `variants` inside our `properties` fields. Such a field mapping is
+declared through the optional Meta-option `retangled_fields`. In this dictionary, all entries are
+optional; if a field name is missing, it just maps to itself.
+
+This mapping table can also be used to map field names to other keys inside the resulting JSON
+datastructure. This for instance is handy to map fields containg an underscore into field-names
+containing instead a dash. 
+
+
 ## Caveats
 
 Due to the nature of JSON, indexing and thus building filters or sorting rules based on the fields content is not as
@@ -133,27 +192,3 @@ rather than digging through data.
 Foreign keys are stored as `"fieldname": {"model": "appname.modelname", "pk": 1234}` in our JSON field, meaning that
 we have no database constraints. If a target object is deleted, that foreign key points to nowhere. Therefore always
 keep in mind, that we don't have any referential integrity and hence must write our code in a defensive manner.
-
-
-## Changes
-
-- 0.3.1
-  * No functional changes.
-  * Add support for Django-3.1 and Python-3.8.
-  * Drop support for Django<2.1 and Python-3.5.
-
-- 0.3
-  * Add support for `ModelMultipleChoiceField`.
-  * Fix: Make a deep copy of `entangled_fields` and `untangled_fields` before merging.
-  * Add covenience class `EntangledModelForm`.
-  * Moving data from entangled fields onto their compressed representation, now is performed after
-    the form has performed its own `clean()`-call, so that accessing form fields is more natural.
-  * Add functions `get_related_object` and `get_related_queryset` to get the model object from its
-    JSON representation.
-
-- 0.2
-  * Introduce `Meta`-option `untangled_fields`, because the approach in 0.1 didn't always work.
-  * Use `formfield()`-method, for portability reasons with Django's Postgres JSON field.
-
-- 0.1
-  * Initial release.
