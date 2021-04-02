@@ -13,8 +13,8 @@ Edit JSON-Model Fields using a Standard Django Form.
 ## Use-Case
 
 A Django Model may contain fields which accept arbitrary data stored as JSON. Django itself, provides a
-[JSON field](https://docs.djangoproject.com/en/stable/ref/contrib/postgres/fields/#jsonfield) specific to Postgres.
-For other database implementations, there are plenty of alternatives.
+[JSON field](https://docs.djangoproject.com/en/stable/ref/models/fields/#django.db.models.JSONField) (it was
+[specific to Postgres before Django-3.1](https://docs.djangoproject.com/en/3.1/ref/contrib/postgres/fields/#jsonfield)).
 
 When creating a form from a model, the input field associated with a JSON field, typically is a `<textarea ...></textarea>`.
 This textarea widget is very inpracticable for editing, because it just contains a textual representation of that
@@ -46,14 +46,13 @@ product model for each product type, we use a JSON field to store these arbitrar
 
 ```python
 from django.db import models
-from django.contrib.postgres.fields import JSONField
 
 class Product(models.Model):
     name = models.CharField(max_length=50)
 
     price = models.DecimalField(max_digits=5, decimal_places=2)
-    
-    properties = JSONField()
+
+    properties = models.JSONField()
 ```
 
 In a typical form editing view, we would create a form inheriting from
