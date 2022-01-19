@@ -88,7 +88,7 @@ class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
         # I found this entangled form module will ignore old values in json field that
         # are not used in form fields. In my case I had some extra data pushed to json field 
         # by my code that I lost them after an edit by this form.
-        # So I added an old_data dict to this form to keep my old data state
+        # So I added an old_data dict to this form to keep my old data states
         self.old_data = {}
         if 'instance' in kwargs and kwargs['instance']:
             initial = kwargs['initial'] if 'initial' in kwargs else {}
@@ -126,7 +126,7 @@ class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
         for field_name, assigned_fields in opts.entangled_fields.items():
             # cleaned_data[field_name] = {}
             # here I check if this field has an old data to restore it before edit
-            # the else condition applies to form created for new
+            # the else condition may applies to forms created for new
             if field_name in self.old_data:
                 cleaned_data[field_name] = self.old_data[field_name]
             else:
@@ -142,16 +142,41 @@ class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
                 if isinstance(self.base_fields[af], ModelMultipleChoiceField) and \
                         isinstance(self.cleaned_data[af], QuerySet):
                     meta = self.cleaned_data[af].model._meta
-                    value = {
-                        'model': '{}.{}'.format(meta.app_label, meta.model_name),
-                        'p_keys': list(self.cleaned_data[af].values_list('pk', flat=True)),
-                    }
+                    # I have some modeles with UUID as their pk.
+                    # I got error here as django says can not add UUID.uuid to jsonfield
+                    # value = {
+                    #     'model': '{}.{}'.format(meta.app_label, meta.model_name),
+                    #     'p_keys': list(self.cleaned_data[af].values_list('pk', flat=True)),
+                    # }
+                    # So I added a try, expect block here 
+                    # and changed expect cases to string before adding to jsonfield
+                    try:
+                        value = {
+                            'model': '{}.{}'.format(meta.app_label, meta.model_name),
+                            'p_keys': list(self.cleaned_data[af].values_list('pk', flat=True)),
+                        }
+                    except:
+                        value = {
+                            'model': '{}.{}'.format(meta.app_label, meta.model_name),
+                            'p_keys': ['{}'.format(f) for f in  list(self.cleaned_data[af].values_list('pk', flat=True))],
+                        }                    
                 elif isinstance(self.base_fields[af], ModelChoiceField) and isinstance(self.cleaned_data[af], Model):
                     meta = self.cleaned_data[af]._meta
-                    value = {
-                        'model': '{}.{}'.format(meta.app_label, meta.model_name),
-                        'pk': self.cleaned_data[af].pk,
-                    }
+                    # I added a try block here as mentioned above
+                    # value = {
+                    #     'model': '{}.{}'.format(meta.app_label, meta.model_name),
+                    #     'pk': self.cleaned_data[af].pk,
+                    # }
+                    try:
+                        value = {
+                            'model': '{}.{}'.format(meta.app_label, meta.model_name),
+                            'pk': self.cleaned_data[af].pk,
+                        }
+                    except:
+                        value = {
+                            'model': '{}.{}'.format(meta.app_label, meta.model_name),
+                            'pk': '{}'.format(self.cleaned_data[af].pk),
+                        }                    
                 else:
                     value = self.cleaned_data[af]
                 bucket[part] = value
