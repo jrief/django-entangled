@@ -85,9 +85,16 @@ class EntangledFormMetaclass(ModelFormMetaclass):
 class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
     def __init__(self, *args, **kwargs):
         opts = self._meta
+        # I found this entangled form module will ignore old values in json field that
+        # are not used in form fields. In my case I had some extra data pushed to json field 
+        # by my code that I lost them after an edit by this form.
+        # So I added an old_data dict to this form to keep my old data state
+        self.old_data = {}
         if 'instance' in kwargs and kwargs['instance']:
             initial = kwargs['initial'] if 'initial' in kwargs else {}
             for field_name, assigned_fields in opts.entangled_fields.items():
+                # add old field value to form's old_data
+                self.old_data[field_name] = getattr(kwargs['instance'], field_name)
                 for af in assigned_fields:
                     reference = getattr(kwargs['instance'], field_name)
                     try:
@@ -117,7 +124,13 @@ class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
         super()._clean_form()
         cleaned_data = {f: self.cleaned_data[f] for f in opts.untangled_fields if f in self.cleaned_data}
         for field_name, assigned_fields in opts.entangled_fields.items():
-            cleaned_data[field_name] = {}
+            # cleaned_data[field_name] = {}
+            # here I check if this field has an old data to restore it before edit
+            # the else condition applies to form created for new
+            if field_name in self.old_data:
+                cleaned_data[field_name] = self.old_data[field_name]
+            else:
+                cleaned_data[field_name] = {}
             for af in assigned_fields:
                 if af not in self.cleaned_data:
                     continue
