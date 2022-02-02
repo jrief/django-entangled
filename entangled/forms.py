@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField, ModelFormMetaclass, ModelForm
 from django.forms.fields import Field
 from django.forms.widgets import Widget
-from django.db.models import Model
+from django.db.models import Model, JSONField
 from django.db.models.query import QuerySet
 
 
@@ -37,10 +37,8 @@ class EntangledFormMetaclass(ModelFormMetaclass):
     def __new__(cls, class_name, bases, attrs):
         def formfield_callback(modelfield, **kwargs):
             if modelfield.name in entangled_fields.keys():
-                # there are so many different implementations for JSON fields,
-                # that we just check if "json" is part of the formfield's classname.
-                assert re.search('json', modelfield.formfield().__class__.__name__, re.IGNORECASE), \
-                    "Field `{}.{}` doesn't seem to be JSON serializable.".format(class_name, modelfield.name)
+                assert isinstance(modelfield, JSONField), \
+                    "Field `{}.{}` doesn't seem to be a JSONField.".format(class_name, modelfield.name)
                 return EntangledField(show_hidden_initial=False)
             return modelfield.formfield(**kwargs)
 
