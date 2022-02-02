@@ -12,8 +12,8 @@ Edit JSON-Model Fields using a Standard Django Form.
 ## Use-Case
 
 A Django Model may contain fields which accept arbitrary data stored as JSON. Django itself, provides a
-[JSON field](https://docs.djangoproject.com/en/stable/ref/models/fields/#django.db.models.JSONField) (it was
-[specific to Postgres before Django-3.1](https://docs.djangoproject.com/en/3.1/ref/contrib/postgres/fields/#jsonfield)).
+[JSON field](https://docs.djangoproject.com/en/stable/ref/models/fields/#django.db.models.JSONField) to store arbitrary
+serializable data.
 
 When creating a form from a model, the input field associated with a JSON field, typically is a `<textarea ...></textarea>`.
 This textarea widget is very inpracticable for editing, because it just contains a textual representation of that
