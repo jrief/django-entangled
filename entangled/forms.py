@@ -91,7 +91,7 @@ class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
                     try:
                         for part in opts.retangled_fields[af].split('.'):
                             reference = reference[part]
-                    except KeyError:
+                    except (KeyError, TypeError):
                         continue
                     if isinstance(self.base_fields[af], ModelMultipleChoiceField):
                         try:
