@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from django.contrib.auth import get_user_model
 from django.forms import fields
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
+from django.utils.html import strip_spaces_between_tags
 
 from entangled.forms import EntangledModelForm
 from .models import Product, Category
@@ -35,7 +36,7 @@ class ProductForm(EntangledModelForm):
 def test_unbound_form():
     product_form = ProductForm()
     assert product_form.is_bound is False
-    expected = BeautifulSoup("""
+    expected = BeautifulSoup(strip_spaces_between_tags("""
         <li><label for="id_name">Name:</label> <input type="text" name="name" required id="id_name"></li>
         <li><label for="id_tenant">Tenant:</label> <select name="tenant" id="id_tenant">
           <option value="1">John</option>
@@ -51,9 +52,10 @@ def test_unbound_form():
         <li><label for="id_categories">Categories:</label> <select name="categories" id="id_categories" multiple>
           <option value="1">Paraphernalia</option>
           <option value="2">Detergents</option>
-        </select></li>""", features='lxml')
-    print(product_form.as_ul())
-    assert BeautifulSoup(product_form.as_ul(), features='lxml') == expected
+        </select></li>"""),
+        features='lxml',
+    )
+    assert BeautifulSoup(strip_spaces_between_tags(product_form.as_ul()), features='lxml') == expected
 
 
 @pytest.mark.django_db
@@ -90,7 +92,7 @@ def test_instance_form():
     instance = Product.objects.create(name="Grater", properties=properties)
     product_form = ProductForm(instance=instance)
     assert product_form.is_bound is False
-    expected = BeautifulSoup("""
+    expected = BeautifulSoup(strip_spaces_between_tags("""
         <li><label for="id_name">Name:</label> <input type="text" name="name" value="Grater" required id="id_name"></li>
         <li><label for="id_tenant">Tenant:</label> <select name="tenant" id="id_tenant">
           <option value="1" selected>John</option>
@@ -106,5 +108,7 @@ def test_instance_form():
         <li><label for="id_categories">Categories:</label> <select name="categories" id="id_categories" multiple>
           <option value="1" selected>Paraphernalia</option>
           <option value="2" selected>Detergents</option>
-        </select></li>""", features='lxml')
-    assert BeautifulSoup(product_form.as_ul(), features='lxml') == expected
+        </select></li>"""),
+        features='lxml',
+    )
+    assert BeautifulSoup(strip_spaces_between_tags(product_form.as_ul()), features='lxml') == expected

@@ -1,5 +1,4 @@
 from django.db import models
-from jsonfield import JSONField
 
 
 class Category(models.Model):
@@ -18,4 +17,4 @@ class Product(models.Model):
         null=True,
     )
 
-    properties = JSONField()
+    properties = models.JSONField()

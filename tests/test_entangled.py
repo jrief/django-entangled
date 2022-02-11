@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from django.contrib.auth import get_user_model
 from django.forms import fields, widgets
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
+from django.utils.html import strip_spaces_between_tags
 
 from entangled.forms import EntangledModelForm
 from entangled.utils import get_related_object, get_related_queryset
@@ -28,7 +29,7 @@ class ProductForm(EntangledModelForm):
 def test_unbound_form():
     product_form = ProductForm()
     assert product_form.is_bound is False
-    expected = BeautifulSoup("""
+    expected = BeautifulSoup(strip_spaces_between_tags("""
         <li><label for="id_active">Active:</label> <input type="checkbox" name="active" required id="id_active"></li>
         <li><label for="id_name">Name:</label> <input type="text" name="name" required id="id_name"></li>
         <li><label for="id_tenant">Tenant:</label> <select name="tenant" id="id_tenant">
@@ -40,8 +41,10 @@ def test_unbound_form():
         <li><label for="id_categories">Categories:</label> <select name="categories" id="id_categories" multiple>
           <option value="1">Paraphernalia</option>
           <option value="2">Detergents</option>
-        </select></li>""", features='lxml')
-    assert BeautifulSoup(product_form.as_ul(), features='lxml') == expected
+        </select></li>"""),
+        features='lxml',
+    )
+    assert BeautifulSoup(strip_spaces_between_tags(product_form.as_ul()), features='lxml') == expected
 
 
 @pytest.mark.django_db
@@ -82,7 +85,7 @@ def test_instance_form():
     instance = Product.objects.create(name="Broom", properties=properties)
     product_form = ProductForm(instance=instance)
     assert product_form.is_bound is False
-    expected = BeautifulSoup("""
+    expected = BeautifulSoup(strip_spaces_between_tags("""
         <li><label for="id_active">Active:</label> <input type="checkbox" name="active" required id="id_active" checked></li>
         <li><label for="id_name">Name:</label> <input type="text" name="name" value="Broom" required id="id_name"></li>
         <li><label for="id_tenant">Tenant:</label> <select name="tenant" id="id_tenant">
@@ -94,8 +97,10 @@ Cleaning tool consisting of stiff fibers</textarea></li>
         <li><label for="id_categories">Categories:</label> <select name="categories" id="id_categories" multiple>
           <option value="1" selected>Paraphernalia</option>
           <option value="2" selected>Detergents</option>
-        </select></li>""", features='lxml')
-    assert BeautifulSoup(product_form.as_ul(), features='lxml') == expected
+        </select></li>"""),
+        features='lxml',
+    )
+    assert BeautifulSoup(strip_spaces_between_tags(product_form.as_ul()), features='lxml') == expected
 
 
 @pytest.mark.django_db
@@ -141,7 +146,7 @@ def test_form_inheritance():
     product_form._meta.untangled_fields == ['name']
     product_form._meta.entangled_fields == {'properties': ['active', 'tenant', 'description', 'weight']}
     assert product_form.is_bound is False
-    expected = BeautifulSoup("""
+    expected = BeautifulSoup(strip_spaces_between_tags("""
         <li><label for="id_name">Name:</label> <input type="text" name="name" required id="id_name"></li>
         <li><label for="id_tenant">Tenant:</label> <select name="tenant" id="id_tenant">
           <option value="1">John</option>
@@ -152,9 +157,10 @@ def test_form_inheritance():
         <li><label for="id_categories">Categories:</label> <select name="categories" id="id_categories" multiple>
           <option value="1">Paraphernalia</option>
           <option value="2">Detergents</option>
-        </select><input type="hidden" name="description" value="XY" id="id_description"></li>""",
-        features='lxml')
-    assert BeautifulSoup(product_form.as_ul(), features='lxml') == expected
+        </select><input type="hidden" name="description" value="XY" id="id_description"></li>"""),
+        features='lxml',
+    )
+    assert BeautifulSoup(strip_spaces_between_tags(product_form.as_ul()), features='lxml') == expected
 
 
 @pytest.mark.django_db

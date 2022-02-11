@@ -1,5 +1,13 @@
 ## Changes
 
+- 0.5.1
+  * Specify exceptions in helper functions.
+  * Allow initial data to be missing from entangled fields.
+
+- 0.5
+  * Drop support for Django versions below 3.2.
+  * Drop support for external jsonfield implementations.
+
 - 0.4
   * Allow nested structures for stored JSON data.
   * Functions `get_related_object` and `get_related_queryset` have been moved from module
