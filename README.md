@@ -127,7 +127,7 @@ order to store arbitrary content inside our JSON model-fields.
 
 ## Nested Data Structures
 
-Sometimes it can be desirable to store the data in a nested hierarchie of dictionaries, rather than having all
+Sometimes it can be desirable to store the data in a nested hierarchy of dictionaries, rather than having all
 attribute-value-pairs in the first level of our JSON field. This can for instance be handy when merging more than one
 form, all themselves ineriting from `EntangledModelFormMixin`.
 
