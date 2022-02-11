@@ -1,6 +1,10 @@
 ## Changes
 
-0.5
+- 0.6
+  * Specify exceptions in helper functions.
+  * Allow initial data to be missing from entangled fields.
+
+- 0.5
   * Drop support for Django versions below 3.2.
   * Drop support for external jsonfield implementations.
 
