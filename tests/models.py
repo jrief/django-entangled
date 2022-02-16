@@ -1,8 +1,12 @@
-from django.db import models
+from django.db.models import CharField, Model
+try:
+    from django.db.models import JSONField
+except ImportError:
+    from jsonfield import JSONField
 
 
-class Category(models.Model):
-    identifier = models.CharField(
+class Category(Model):
+    identifier = CharField(
         max_length=10,
     )
 
@@ -10,11 +14,11 @@ class Category(models.Model):
         return self.identifier
 
 
-class Product(models.Model):
-    name = models.CharField(
+class Product(Model):
+    name = CharField(
         max_length=20,
         blank=True,
         null=True,
     )
 
-    properties = models.JSONField()
+    properties = JSONField()
