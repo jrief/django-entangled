@@ -7,7 +7,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField, ModelFormMetaclass, ModelForm
 from django.forms.fields import Field
 from django.forms.widgets import Widget
-from django.db.models import Model, JSONField
+from django.db.models import Model
+try:
+    from django.db.models import JSONField
+except ImportError:  # Django<3.1
+    from jsonfield import JSONField
 from django.db.models.query import QuerySet
 
 

@@ -47,3 +47,5 @@ INSTALLED_APPS = [
     'entangled',
     'tests',
 ]
+
+USE_TZ = False
