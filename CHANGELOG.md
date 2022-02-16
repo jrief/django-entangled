@@ -1,5 +1,9 @@
 ## Changes
 
+- 0.5.2
+  * Revert "Specify exceptions in helper functions". It introduced
+    a regression in other packages using it.
+
 - 0.5.1
   * Specify exceptions in helper functions.
   * Allow initial data to be missing from entangled fields.
