@@ -1,5 +1,8 @@
 ## Changes
 
+- 0.5.3
+  * Load external JSONField if used with Django-2.2. 
+
 - 0.5.2
   * Revert "Specify exceptions in helper functions". It introduced
     a regression in other packages using it.
