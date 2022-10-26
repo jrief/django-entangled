@@ -192,4 +192,13 @@ we have no database constraints. If a target object is deleted, that foreign key
 keep in mind, that we don't have any referential integrity and hence must write our code in a defensive manner.
 
 
+## Contributing to the Project
+
+* Please ask question on the [discussion board](https://github.com/jrief/django-entangled/discussions).
+* Ideas for new features shall as well be discussed on that board.
+* The [issue tracker](https://github.com/jrief/django-entangled/issues) shall *exclusively* be used to report bugs.
+* Except for very small fixes (typos etc.), do not open a pull request without an issue.
+* Before writing code, adopt your IDE to respect the project's [.editorconfig](https://github.com/jrief/django-entangled/blob/master/.editorconfig).
+
+
 [![Twitter Follow](https://img.shields.io/twitter/follow/jacobrief?style=social)](https://twitter.com/jacobrief)
