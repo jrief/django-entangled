@@ -57,8 +57,7 @@ class EntangledFormMetaclass(ModelFormMetaclass):
             fieldset.update(untangled_fields)
             fieldset.update(entangled_fields.keys())
             attrs['Meta'].fields = list(fieldset)
-            attrs['formfield_callback'] = formfield_callback  # Django up to 4.1
-            attrs['Meta'].formfield_callback = formfield_callback  # Django 4.2 +
+            attrs['formfield_callback'] = formfield_callback
         new_class = super().__new__(cls, class_name, bases, attrs)
 
         # perform some model checks
