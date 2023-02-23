@@ -1,5 +1,8 @@
 ## Changes
 
+- 0.5.4
+  * Add support for Django-4.1 and 4.2.
+
 - 0.5.3
   * Load external JSONField if used with Django-2.2. 
 
