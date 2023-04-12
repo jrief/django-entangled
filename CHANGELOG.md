@@ -2,9 +2,10 @@
 
 - 0.5.4
   * Add support for Django-4.1 and 4.2.
+  * Confirm support for Python 3.11
 
 - 0.5.3
-  * Load external JSONField if used with Django-2.2. 
+  * Load external JSONField if used with Django-2.2.
 
 - 0.5.2
   * Revert "Specify exceptions in helper functions". It introduced
