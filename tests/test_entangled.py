@@ -1,5 +1,7 @@
 import pytest
 from bs4 import BeautifulSoup
+from django.contrib import admin
+from django.contrib.admin import ModelAdmin
 
 from django.contrib.auth import get_user_model
 from django.forms import fields, widgets
@@ -211,6 +213,17 @@ def test_get_related_queryset_deprecated():
 
 
 @pytest.mark.django_db
-def test_formfield_callback():
+def test_entangled_field_type():
+    class ProductAdmin(ModelAdmin):
+        form = ProductForm
+
+    site = admin.site
+    form = ProductAdmin(Product, site).get_form(None)
+
+    # Form itself has correct field type
     assert isinstance(ProductForm.base_fields['properties'], EntangledField)
+    # Admin-created form has correct field type
+    assert isinstance(form.base_fields['properties'], EntangledField)
+
+
 
