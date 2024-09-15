@@ -102,8 +102,9 @@ or a `ModelMultipleChoiceField` to refer to another model object using a
 Since in this form we also want to access the non-JSON fields from our Django model, we add a list named
 `untangled_fields` to our `Meta`-options. In this list, (here `['name', 'price']`) we refer to the non-JSON fields
 in our model `Product`. From both of these iterables, `entangled_fields` and `untangled_fields`, the parent class
-`EntangledModelForm` then builds the `Meta`-option `fields`, otherwise required. Therefore you should not
-use `fields` to declare this list, but rather rely on `entangled_fields` and `untangled_fields`.
+`EntangledModelForm` then builds the `Meta`-option `fields`, otherwise required. Alternatively, you can use `fields` 
+to manage which entangled **and** untangled fields are shown. If `fields` is not defined, django-entangled will
+internally create it based on the `untangled` option.
 
 We can use this form in any Django form view. A typical use-case, is the built-in Django `ModelAdmin`:
 
