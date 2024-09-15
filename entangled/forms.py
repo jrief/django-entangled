@@ -1,9 +1,10 @@
 from copy import deepcopy
 from warnings import warn
-import re
 
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
+from django import forms
+from django.forms import fields_for_model
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField, ModelFormMetaclass, ModelForm
 from django.forms.fields import Field
 from django.forms.widgets import Widget
@@ -29,6 +30,7 @@ class EntangledField(Field):
     widget = InvisibleWidget
 
     def __init__(self, required=False, *args, **kwargs):
+        # EntangledField is not required by default
         super().__init__(required=required, *args, **kwargs)
 
 
@@ -41,19 +43,43 @@ class EntangledFormMetaclass(ModelFormMetaclass):
                 return EntangledField(show_hidden_initial=False)
             return modelfield.formfield(**kwargs)
 
-        if 'Meta' in attrs:
-            untangled_fields = list(getattr(attrs['Meta'], 'untangled_fields', []))
-            entangled_fields = deepcopy(getattr(attrs['Meta'], 'entangled_fields', {}))
-            retangled_fields = deepcopy(getattr(attrs['Meta'], 'retangled_fields', {}))
-        else:
-            untangled_fields, entangled_fields, retangled_fields = [], {}, {}
+        attrs.setdefault('Meta', type('Meta', (), {"fields": forms.ALL_FIELDS}))
+        untangled_fields = list(getattr(attrs['Meta'], 'untangled_fields', []))
+        entangled_fields = deepcopy(getattr(attrs['Meta'], 'entangled_fields', {}))
+        retangled_fields = deepcopy(getattr(attrs['Meta'], 'retangled_fields', {}))
         if entangled_fields:
-            fieldset = set(getattr(attrs['Meta'], 'fields', []))
-            fieldset.update(untangled_fields)
-            fieldset.update(entangled_fields.keys())
-            attrs['Meta'].fields = list(fieldset)
-            attrs['formfield_callback'] = formfield_callback  # Django up to 4.1
             attrs['Meta'].formfield_callback = formfield_callback  # Django 4.2 +
+
+        # Modify entangled fields to respoect Meta.fields and Meta.exclude
+        #
+        fields = getattr(attrs['Meta'], 'fields', forms.ALL_FIELDS)
+
+        # Adjust fields
+        if entangled_fields:
+            if fields == forms.ALL_FIELDS:
+                # This includes the case where no Meta.fields is specified
+                # Explicitly list the entangled and untangled fields - remove excluded fields
+
+                fields_to_delete = set(getattr(attrs['Meta'], 'exclude', []))
+                for field_name in entangled_fields.keys():
+                    entangled_fields[field_name] = list(set(entangled_fields[field_name]) - fields_to_delete)
+                attrs['Meta'].fields = forms.ALL_FIELDS
+            else:
+                fieldset = set(fields)
+                # Alter remove fields not listed in Meta.fields
+                fields_to_delete = set(sum(entangled_fields.values(), [])) - fieldset
+                fields_to_delete.update(set(untangled_fields) - fieldset)
+                # Remove fields not listed in Meta.fields from entangled_fields
+                for field_name in entangled_fields.keys():
+                    entangled_fields[field_name] = list(set(entangled_fields[field_name]) & fieldset)
+                # Add the json fields needed to the fieldset
+                fieldset.update(field for field, field_list in entangled_fields.items() if field_list)
+                attrs['Meta'].fields = list(fieldset)
+
+            # Shadow fields not listed in Meta.fields
+            for field_name in fields_to_delete:
+                attrs[field_name] = None
+
         new_class = super().__new__(cls, class_name, bases, attrs)
 
         # perform some model checks
