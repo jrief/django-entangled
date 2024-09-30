@@ -1,6 +1,6 @@
 ## Changes
 
-- Unreleased
+- 0.6
   * Add support for Django's `modelform_factory` and `Meta.fields` option.
   * Add support for Django 5.0, 5.1
   * Drop support for Django 4.1, 4.0, 3.2, 2.2
