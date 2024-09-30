@@ -1,12 +1,14 @@
 import pytest
 from bs4 import BeautifulSoup
+from django.contrib import admin
+from django.contrib.admin import ModelAdmin
 
 from django.contrib.auth import get_user_model
 from django.forms import fields, widgets
 from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
 from django.utils.html import strip_spaces_between_tags
 
-from entangled.forms import EntangledModelForm
+from entangled.forms import EntangledModelForm, EntangledField
 from entangled.utils import get_related_object, get_related_queryset
 from .models import Product, Category
 
@@ -208,3 +210,20 @@ def test_get_related_queryset_deprecated():
         categories = get_related_queryset(properties, 'categories')
         assert issubclass(categories.model, Category)
         assert categories.count() == 2
+
+
+@pytest.mark.django_db
+def test_entangled_field_type():
+    class ProductAdmin(ModelAdmin):
+        form = ProductForm
+
+    site = admin.site
+    form = ProductAdmin(Product, site).get_form(None)
+
+    # Form itself has correct field type
+    assert isinstance(ProductForm.base_fields['properties'], EntangledField)
+    # Admin-created form has correct field type
+    assert isinstance(form.base_fields['properties'], EntangledField)
+
+
+

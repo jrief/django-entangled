@@ -1,8 +1,4 @@
-from django.db.models import CharField, Model
-try:
-    from django.db.models import JSONField
-except ImportError:  # Django<3.1
-    from jsonfield import JSONField
+from django.db.models import CharField, JSONField, Model
 
 
 class Category(Model):

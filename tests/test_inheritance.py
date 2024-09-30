@@ -45,7 +45,6 @@ class SortedProductForm(ProductForm):
 def test_sorted_form():
     product_form = SortedProductForm()
     assert product_form.is_bound is False
-    print(product_form.as_ul())
     expected = BeautifulSoup(strip_spaces_between_tags("""
         <li><label for="id_active">Active:</label> <input type="checkbox" name="active" required id="id_active"></li>
         <li><label for="id_description">Description:</label> <textarea name="description" cols="40" rows="10" id="id_description">
