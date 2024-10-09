@@ -1,3 +1,4 @@
+import itertools
 import traceback
 from copy import deepcopy, copy
 from warnings import warn
@@ -49,49 +50,53 @@ class EntangledFormMetaclass(ModelFormMetaclass):
         # Merge untangled and entangled fields from base classes
         for base in bases:
             if hasattr(base, "_meta"):
-                untangled_fields.extend(getattr(base._meta, "untangled_fields", []))
+                untangled_fields = getattr(base._meta, "untangled_fields", []) + untangled_fields
                 for key, fields in getattr(base._meta, "entangled_fields", {}).items():
-                    entangled_fields.setdefault(key, [])
-                    entangled_fields[key].extend(fields)
+                    existing_fields = entangled_fields.setdefault(key, [])
+                    entangled_fields[key] = [
+                                                field for field in fields if field not in existing_fields
+                                            ] + existing_fields
         for entangled_list in entangled_fields.values():
             for ef in entangled_list:
                 if ef not in retangled_fields:
                     retangled_fields[ef] = ef
 
         # Modify entangled fields to respect Meta.fields and Meta.exclude
-        fields = getattr(attrs["Meta"], "fields", forms.ALL_FIELDS)
+        fields = getattr(attrs["Meta"], "fields", None)
         # Adjust fields
         if entangled_fields:
-            if fields == forms.ALL_FIELDS:
+            if fields == forms.ALL_FIELDS or fields is None:
                 # This includes the case where no Meta.fields is specified
                 # Explicitly list the entangled and untangled fields - remove excluded fields
 
                 fields_to_delete = set(getattr(attrs["Meta"], "exclude", []))
                 for field_name in entangled_fields.keys():
-                    entangled_fields[field_name] = list(
-                        set(entangled_fields[field_name]) - fields_to_delete
-                    )
+                    entangled_fields[field_name] = [
+                        field for field in entangled_fields[field_name] if field not in fields_to_delete
+                    ]
                     attrs[field_name] = EntangledField()
-                attrs["Meta"].fields = forms.ALL_FIELDS
+                attrs["Meta"].fields = (
+                    fields or
+                    cls._create_fields_option(untangled_fields, entangled_fields, fields_to_delete) or
+                    forms.ALL_FIELDS
+                )
             else:
-                fieldset = set(fields)
+                fieldset = list(fields)  # Create a copy
                 # Alter remove fields not listed in Meta.fields
-                fields_to_delete = set(sum(entangled_fields.values(), [])) - fieldset
-                fields_to_delete.update(set(untangled_fields) - fieldset)
+                fields_to_delete = set(itertools.chain(*entangled_fields.values())) - set(fieldset)
+                fields_to_delete.update(set(untangled_fields) - set(fieldset))
                 # Remove fields not listed in Meta.fields from entangled_fields
                 for field_name in entangled_fields.keys():
-                    entangled_fields[field_name] = list(
-                        set(entangled_fields[field_name]) & fieldset
-                    )
+                    entangled_fields[field_name] = [
+                        field for field in entangled_fields[field_name] if field in fieldset
+                    ]
                     # Ensure the JSON field is declared as EntangledField
                     attrs[field_name] = EntangledField() if entangled_fields[field_name] else None
                 # Add the json fields needed to the fieldset
-                fieldset.update(
-                    field
-                    for field, field_list in entangled_fields.items()
-                    if field_list
-                )
-                attrs["Meta"].fields = list(fieldset)
+                for field, field_list in entangled_fields.items():
+                    if field_list:
+                        fieldset.append(field)
+                attrs["Meta"].fields = fieldset
 
             # Shadow fields not listed in Meta.fields
             for field_name in fields_to_delete:
@@ -112,6 +117,17 @@ class EntangledFormMetaclass(ModelFormMetaclass):
         new_class._meta.untangled_fields = untangled_fields
         new_class._meta.retangled_fields = retangled_fields
         return new_class
+
+    @classmethod
+    def _create_fields_option(cls, untangled_fields, entangled_fields, fields_to_delete):
+        fields = list(untangled_fields)  # creates a copy for modification
+        for entangled in entangled_fields.values():
+            fields += entangled
+        fields += list(entangled_fields.keys())
+        for field in fields_to_delete:
+            if field in fields:
+                fields.remove(field)
+        return fields
 
 
 class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
