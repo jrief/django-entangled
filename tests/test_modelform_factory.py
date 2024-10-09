@@ -34,9 +34,10 @@ def test_modelform_entangled_only():
 
 @pytest.mark.django_db
 def test_modelform_exclude_untangled():
-    form = modelform_factory(Product, form=QuantifiedUnsortedProductForm, exclude=('name',))
+    form = modelform_factory(Product, form=QuantifiedUnsortedProductForm, fields="__all__", exclude=('name',))
 
     expected_fields = (
+        'dummy_field',
         'active',
         'description',
         'quantity',
@@ -49,11 +50,12 @@ def test_modelform_exclude_untangled():
 
 
 @pytest.mark.django_db
-def test_modelform_exlude_entangled():
-    form = modelform_factory(Product, form=QuantifiedUnsortedProductForm, exclude=('active',))
+def test_modelform_exclude_entangled():
+    form = modelform_factory(Product, form=QuantifiedUnsortedProductForm, fields="__all__", exclude=('active',))
 
     expected_fields = (
         'name',
+        'dummy_field',
         'description',
         'quantity',
         'unit',

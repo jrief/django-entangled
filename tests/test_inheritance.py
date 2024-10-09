@@ -156,3 +156,27 @@ def test_multiple_inheritance_sorted():
         features='lxml',
     )
     assert BeautifulSoup(strip_spaces_between_tags(product_form.as_ul()), features='lxml') == expected
+
+
+@pytest.mark.django_db
+def test_form_meta():
+    options = SortedBookForm._meta
+    declared_opt = SortedBookForm.Meta
+
+    assert options.model == Product
+    assert declared_opt.model == Product
+
+    assert not hasattr(declared_opt, 'untangled_fields')
+    assert options.untangled_fields == ['name']
+
+    assert declared_opt.entangled_fields == {'properties': ['author']}
+    assert options.entangled_fields == {
+        'properties': ['active', 'description', 'author']
+    }
+
+    # No retangled fields declared - maps fields onto themselves
+    assert options.retangled_fields ==  {'active': 'active', 'author': 'author', 'description': 'description'}
+
+    assert options.fields == ['name', 'active', 'description', 'author', 'properties']
+
+

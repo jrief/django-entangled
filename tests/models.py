@@ -16,5 +16,5 @@ class Product(Model):
         blank=True,
         null=True,
     )
-
+    dummy_field = CharField(max_length=42, blank=True, null=True)
     properties = JSONField()

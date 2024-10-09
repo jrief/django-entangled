@@ -227,3 +227,12 @@ def test_entangled_field_type():
 
 
 
+@pytest.mark.django_db
+def test_no_unlisted_fields():
+    class ProductAdmin(ModelAdmin):
+        form = ProductForm
+
+    print(80*"=")
+    print(ProductForm.base_fields)
+    print(80*"=")
+
