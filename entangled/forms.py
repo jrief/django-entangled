@@ -77,8 +77,7 @@ class EntangledFormMetaclass(ModelFormMetaclass):
                     attrs[field_name] = EntangledField()
                 attrs["Meta"].fields = (
                     fields or
-                    cls._create_fields_option(untangled_fields, entangled_fields, fields_to_delete) or
-                    forms.ALL_FIELDS
+                    cls._create_fields_option(untangled_fields, entangled_fields, fields_to_delete)
                 )
             else:
                 fieldset = list(fields)  # Create a copy
