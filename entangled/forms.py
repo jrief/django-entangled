@@ -42,7 +42,7 @@ class EntangledField(Field):
 
 class EntangledFormMetaclass(ModelFormMetaclass):
     def __new__(cls, class_name, bases, attrs):
-        attrs.setdefault("Meta", type("Meta", (), {"fields": forms.ALL_FIELDS}))
+        attrs.setdefault("Meta", type("Meta", (), {}))
         untangled_fields = list(getattr(attrs["Meta"], "untangled_fields", []))
         entangled_fields = deepcopy(getattr(attrs["Meta"], "entangled_fields", {}))
         retangled_fields = deepcopy(getattr(attrs["Meta"], "retangled_fields", {}))
