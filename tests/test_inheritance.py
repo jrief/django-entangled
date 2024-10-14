@@ -178,5 +178,3 @@ def test_form_meta():
     assert options.retangled_fields ==  {'active': 'active', 'author': 'author', 'description': 'description'}
 
     assert options.fields == ['name', 'active', 'description', 'author', 'properties']
-
-
