@@ -1,5 +1,8 @@
 ## Changes
 
+- 0.6.1
+  * Fix: Fully exclude fields not listed in `Meta.entangled_fields`, `Meta.untangled_field` or `Meta.fields`.
+
 - 0.6
   * Add support for Django's `modelform_factory` and `Meta.fields` option.
   * Add support for Django 5.0, 5.1
