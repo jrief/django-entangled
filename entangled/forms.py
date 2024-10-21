@@ -161,8 +161,9 @@ class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
             kwargs.setdefault("initial", initial)
         super().__init__(*args, **kwargs)
 
-    def _post_clean(self):
+    def _clean_form(self):
         opts = self._meta
+        super()._clean_form()
         cleaned_data = {
             f: self.cleaned_data[f]
             for f in opts.untangled_fields
@@ -204,9 +205,6 @@ class EntangledModelFormMixin(metaclass=EntangledFormMetaclass):
                     value = self.cleaned_data[af]
                 bucket[part] = value
         self.cleaned_data = cleaned_data
-
-        # Now validate model fields
-        super()._post_clean()
 
 
 class EntangledModelForm(EntangledModelFormMixin, ModelForm):
