@@ -19,8 +19,8 @@ When creating a form from a model, the input field associated with a JSON field,
 This textarea widget is very inpracticable for editing, because it just contains a textual representation of that
 object notation. One possibility is to use a generic [JSON editor](https://github.com/josdejong/jsoneditor),
 which with some JavaScript, transforms the widget into an attribute-value-pair editor. This approach however requires
-to manage the field keys ourself. It furthermore prevents us from utilizing all the nice features provided by the Django
-form framework, such as field validation, normalization of data and the usage of foreign keys.
+us to manage the field keys ourselfs. It furthermore prevents us from utilizing all the nice features provided by the
+Django Form framework, such as field validation, normalization of data and the usage of foreign keys.
 
 By using **django-entangled**, one can use a Django `ModelForm`, and store all,
 or a subset of that form fields in one or more JSON fields inside of the associated model.
@@ -48,17 +48,15 @@ from django.db import models
 
 class Product(models.Model):
     name = models.CharField(max_length=50)
-
     price = models.DecimalField(max_digits=5, decimal_places=2)
-
     properties = models.JSONField()
 ```
 
 In a typical form editing view, we would create a form inheriting from
 [ModelForm](https://docs.djangoproject.com/en/stable/topics/forms/modelforms/#modelform) and refer to this model using
 the `model` attribute in its `Meta`-class. Then the `properties`-field would show up as unstructured JSON, rendered
-inside a `<textarea ...></textarea>`. This definitely is not what we want! Instead we create a typical Django Form using
-the alternative class `EntangledModelForm`.
+inside a `<textarea ...></textarea>`. This definitely is not what we want! Instead, we create a typical Django Form
+using the alternative class `EntangledModelForm`.
 
 ```python
 from django.contrib.auth import get_user_model
@@ -70,11 +68,9 @@ class ProductForm(EntangledModelForm):
     color = fields.RegexField(
         regex=r'^#[0-9a-f]{6}$',
     )
-
     size = fields.ChoiceField(
         choices=[('s', "small"), ('m', "medium"), ('l', "large"), ('xl', "extra large")],
     )
-
     tenant = models.ModelChoiceField(
         queryset=get_user_model().objects.filter(is_staff=True),
     )
@@ -92,21 +88,21 @@ class ProductForm(EntangledModelFormMixin, BaseProductForm):
     ...
 ```
 
-In addition we add a special dictionary named `entangled_fields` to our `Meta`-options. In this dictionary, the key
+In addition, we add a special dictionary named `entangled_fields` to our `Meta`-options. In this dictionary, the key
 (here `'properties'`) refers to the JSON-field in our model `Product`. The value (here `['color', 'size', 'tenant']`)
 is a list of named form fields, declared in our form- or base-class of thereof. This allows us to assign all standard
-Django form fields to arbitrary JSON fields declared in our Django model. Moreover, we can even use a `ModelChoiceField`
-or a `ModelMultipleChoiceField` to refer to another model object using a
-[generic relation](https://docs.djangoproject.com/en/stable/ref/contrib/contenttypes/#generic-relations)
+Django form fields to arbitrary JSON fields declared in our Django model. Moreover, we can even use a
+`ModelChoiceField` or a `ModelMultipleChoiceField` to refer to another model object using a
+[generic relation](https://docs.djangoproject.com/en/stable/ref/contrib/contenttypes/#generic-relations).
 
 Since in this form we also want to access the non-JSON fields from our Django model, we add a list named
 `untangled_fields` to our `Meta`-options. In this list, (here `['name', 'price']`) we refer to the non-JSON fields
 in our model `Product`. From both of these iterables, `entangled_fields` and `untangled_fields`, the parent class
 `EntangledModelForm` then builds the `Meta`-option `fields`, otherwise required. Alternatively, you can use `fields` 
-to manage which entangled **and** untangled fields are shown. If `fields` is not defined, django-entangled will
-internally create it based on the `untangled` option.
+to manage which entangled **and** untangled fields are shown. If `fields` is not defined, **django-entangled** will
+create it on the fly, based on the keys in `entangled_fields` and on the listed `untangled_fields`.
 
-We can use this form in any Django form view. A typical use-case, is the built-in Django `ModelAdmin`:
+We can use this form in any Django form view. A typical use-case is the built-in Django `ModelAdmin`:
 
 ```python
 from django.contrib import admin
@@ -161,7 +157,6 @@ class ClothingProductForm(BaseProductForm):
     color = fields.RegexField(
         regex=r'^#[0-9a-f]{6}$',
     )
-
     size = fields.ChoiceField(
         choices=[('s', "small"), ('m', "medium"), ('l', "large"), ('xl', "extra large")],
     )
