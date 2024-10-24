@@ -1,5 +1,9 @@
 ## Changes
 
+- 0.6.2
+  * Fix regression introduced in 0.6: In `EntangledModelFormMixin` use `_clean_form` to untangle fields rather than
+    `_post_clean` to remain compatible with Django's formsets.
+
 - 0.6.1
   * Fix: Fully exclude fields not listed in `Meta.entangled_fields`, `Meta.untangled_field` or `Meta.fields`.
 
