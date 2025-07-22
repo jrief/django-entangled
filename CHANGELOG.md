@@ -1,5 +1,8 @@
 ## Changes
 
+- 0.6.3
+  * Do not ship folder `tests` with this package.
+
 - 0.6.2
   * Fix regression introduced in 0.6: In `EntangledModelFormMixin` use `_clean_form` to untangle fields rather than
     `_post_clean` to remain compatible with Django's formsets.
