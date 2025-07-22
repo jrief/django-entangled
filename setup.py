@@ -32,7 +32,7 @@ setup(
     author='Jacob Rief',
     author_email='jacob.rief@gmail.com',
     url='https://github.com/jrief/django-entangled',
-    packages=find_packages(),
+    packages=find_packages(exclude=['tests']),
     install_requires=[
         'django>=2.1',
     ],
