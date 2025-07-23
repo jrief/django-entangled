@@ -2,7 +2,7 @@
 
 Edit JSON-Model Fields using a Standard Django Form.
 
-[![Build Status](https://travis-ci.org/jrief/django-entangled.svg?branch=master)](https://travis-ci.org/jrief/django-entangled)
+[![Build Status](https://github.com/jrief/django-entangled/actions/workflows/tests.yml/badge.svg)](https://github.com/jrief/django-entangled/actions)
 [![Coverage](https://codecov.io/github/jrief/django-entangled/coverage.svg?branch=master)](https://codecov.io/github/jrief/django-entangled?branch=master)
 [![PyPI](https://img.shields.io/pypi/pyversions/django-entangled.svg)]()
 [![PyPI version](https://img.shields.io/pypi/v/django-entangled.svg)](https://https://pypi.python.org/pypi/django-entangled)
@@ -186,6 +186,18 @@ rather than digging through data.
 Foreign keys are stored as `"fieldname": {"model": "appname.modelname", "pk": 1234}` in our JSON field, meaning that
 we have no database constraints. If a target object is deleted, that foreign key points to nowhere. Therefore always
 keep in mind, that we don't have any referential integrity and hence must write our code in a defensive manner.
+
+
+## Formsets
+
+If you need deeply structured forms and/or formsets, please have a look at my followup project
+
+[django-formset](https://github.com/jrief/django-formset)
+
+This offers the same basic functionality as **django-entangled** with many extra features, such as
+the possibility to create nested formsets, additional widgets, and much more.
+
+For details, please read the documentation on [Collection Fields](https://django-formset.fly.dev/collection-fields/).
 
 
 ## Contributing to the Project
