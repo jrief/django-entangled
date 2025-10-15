@@ -1,5 +1,9 @@
 ## Changes
 
+0.7
+  * Add support for Django 5.2.
+  * Add support for Python 3.13.
+
 - 0.6.3
   * Do not ship folder `tests` with this package.
 
